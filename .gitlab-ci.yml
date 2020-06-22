@@ -1,0 +1,35 @@
+cache:
+  key: "$CI_COMMIT_REF_NAME"
+  untracked: true
+  paths:
+    - vendor
+    - node_modules
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+build-app-master:
+  only:
+    - master
+  stage: build
+  image: docker:19.03.8
+  services:
+    - docker:18.09-dind
+  script:
+    - docker version
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE/imagelint:latest -f docker/app/Dockerfile.master .
+    - docker push $CI_REGISTRY_IMAGE/imagelint:latest
+
+build-syslog-ng-master:
+  only:
+    - master
+  stage: build
+  image: docker:19.03.8
+  services:
+    - docker:18.09-dind
+  script:
+    - docker version
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE/imagelint/syslog-ng:latest -f docker/syslog-ng/Dockerfile ./docker/syslog-ng
+    - docker push $CI_REGISTRY_IMAGE/imagelint/syslog-ng:latest
