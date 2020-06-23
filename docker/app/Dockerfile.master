@@ -6,5 +6,4 @@ RUN sed -i "/;opcache.validate_timestamps=1/copcache.validate_timestamps=0" /etc
 # Copy our files
 COPY . /var/www/html
 
-RUN composer install && \
-    php artisan config:cache
+RUN composer install
