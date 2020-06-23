@@ -6,4 +6,6 @@ RUN sed -i "/;opcache.validate_timestamps=1/copcache.validate_timestamps=0" /etc
 # Copy our files
 COPY . /var/www/html
 
+RUN ln -s /var/www/html/storage/app/public /var/www/html/public/storage
+
 RUN composer install
