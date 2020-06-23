@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/imagelint/imagelint:docker-base-v1.1
+FROM registry.gitlab.com/imagelint/imagelint:docker-base-v1.2
 
 RUN sed -i "/;opcache.validate_timestamps=1/copcache.validate_timestamps=0" /etc/php/7.4/fpm/php.ini && \
     sed -i "/;opcache.enable=1/copcache.enable=1" /etc/php/7.4/fpm/php.ini
