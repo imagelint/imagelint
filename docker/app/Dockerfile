@@ -6,7 +6,6 @@ WORKDIR /var/www/html
 ### Setup
 ENV GOSU_VERSION 1.7
 ENV DEBIAN_FRONTEND noninteractive
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
         curl \
@@ -20,7 +19,6 @@ RUN apt-get update \
         wget \
         gcc \
         build-essential \
-        gettext-base \
         ca-certificates \
     && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
     && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
@@ -31,10 +29,9 @@ RUN apt-get update \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
     && chmod +x /usr/local/bin/gosu \
-    && gosu nobody true
-
+    && gosu nobody true \
 ### Prepare nginx installation
-RUN set -x \
+    && set -x \
     && NGINX_GPGKEY=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; \
 	found=''; \
 	for server in \
@@ -48,30 +45,28 @@ RUN set -x \
 	done; \
 	test -z "$found" && echo >&2 "error: failed to fetch GPG key $NGINX_GPGKEY" && exit 1; \
      echo "deb-src https://nginx.org/packages/mainline/ubuntu focal nginx" >> /etc/apt/sources.list.d/nginx.list \
-  && tempDir="$(mktemp -d)" \
-  && chmod 777 "$tempDir" \
-  && apt-get update \
-  && apt-get build-dep -y nginx
-
-### Install nginx
-RUN cd / \
-  && wget https://nginx.org/download/nginx-1.19.0.tar.gz \
-  && tar xvzf nginx-1.19.0.tar.gz \
-  && cd /nginx-1.19.0 \
-  && ./configure \
-   --with-debug \
-   --prefix=/opt/nginx \
-  && make -j2 \
-  && make install \
-  && mkdir /var/log/nginx \
-  && cd / \
-  && rm -rf nginx-1.19.0 \
-  && rm -rf nginx-1.19.0.tar.gz
-
-### Install php
-RUN add-apt-repository ppa:ondrej/php \
+    && tempDir="$(mktemp -d)" \
+    && chmod 777 "$tempDir" \
     && apt-get update \
-    && apt-get install -y \
+    && apt-get build-dep -y nginx \
+### Install nginx
+    && cd / \
+    && wget https://nginx.org/download/nginx-1.19.0.tar.gz \
+    && tar xvzf nginx-1.19.0.tar.gz \
+    && cd /nginx-1.19.0 \
+    && ./configure \
+    --with-debug \
+    --prefix=/opt/nginx \
+    && make -j2 \
+    && make install \
+    && mkdir /var/log/nginx \
+    && cd / \
+    && rm -rf nginx-1.19.0 \
+    && rm -rf nginx-1.19.0.tar.gz \
+### Install php
+    && add-apt-repository ppa:ondrej/php \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
         php7.4-fpm \
         php7.4-cli \
         php7.4-gd \
@@ -90,15 +85,13 @@ RUN add-apt-repository ppa:ondrej/php \
         libxrender1 \
     && php -r "readfile('http://getcomposer.org/installer');" | php -- --install-dir=/usr/bin/ --filename=composer \
     && mkdir /run/php \
-    && apt-get -y autoremove \
     && apt-get clean \
-    && apt-get purge -y --auto-remove wget software-properties-common \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && apt-get purge -y --auto-remove wget apt-transport-https software-properties-common build-essential gcc unzip zip debhelper dh-systemd dpkg-dev quilt lsb-release libssl-dev libpcre3-dev zlib1g-dev git \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*  /usr/share/doc/* /usr/share/man/* \
     && sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 20M/g" /etc/php/7.4/fpm/php.ini \
-    && sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 20M/g" /etc/php/7.4/fpm/php.ini
-
-### Redirect nginx logs to stdout/stderr
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 20M/g" /etc/php/7.4/fpm/php.ini \
+    ### Redirect nginx logs to stdout/stderr
+    && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log
 
 ### Copy the nginx/php config to their respective folders
