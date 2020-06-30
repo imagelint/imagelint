@@ -10,7 +10,6 @@ services:
     volumes:
      - .:/var/www/html:cached
      - ./vendor:/var/www/html/vendor:delegated
-     - ./docker/app/nginx.conf:/opt/nginx/conf/nginx.conf
     depends_on:
       - redis
       - mysql

@@ -14,6 +14,8 @@ RUN apt-get update \
         unzip \
         git \
         supervisor \
+        # Gettext is needed to replace the nginx DNS_SERVER variable
+        gettext \
         gnupg2 \
         apt-transport-https \
         wget \
@@ -98,7 +100,7 @@ RUN apt-get update \
 COPY h5bp /opt/nginx/conf/h5bp
 COPY gzip.conf /opt/nginx/conf/gzip.conf
 COPY fastcgi-php.conf /opt/nginx/conf/fastcgi-php.conf
-COPY nginx.conf /opt/nginx/conf/nginx.conf
+COPY nginx.conf /opt/nginx/conf/nginx.conf.template
 COPY php-fpm.conf /etc/php/7.4/fpm/php-fpm.conf
 
 ### Copy and setup the container entrypoint
