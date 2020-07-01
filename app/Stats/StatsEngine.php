@@ -3,6 +3,7 @@
 namespace App\Stats;
 
 use App\Access;
+use App\Models\Domain;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,13 +53,13 @@ class StatsEngine {
         $now = Carbon::parse($start);
         $end = Carbon::parse($end);
         $data = [];
+        $accounts = Domain::where('user_id', $userId)->groupBy('account')->pluck('account');
 
         while($now <= $end) {
             $tableName = 'access_logs_' . $now->format('Ymd');
             try {
                 $day = DB::table($tableName)
-                    ->join('domains', 'domains.domain', '=', $tableName . '.domain')
-                    ->where('user_id', $userId)
+                    ->whereIn('account', $accounts)
                     ->whereBetween($tableName . '.created_at',[$now->format('Y-m-d 00:00:00'),$now->format('Y-m-d 23:59:59')])
                     ->select(DB::raw('SUM(size) as size'), DB::raw('COUNT(*) as count'))
                     ->first();

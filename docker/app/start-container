@@ -14,10 +14,6 @@ if [ ! -d /.composer ]; then
 fi
 chmod -R ugo+rw /.composer
 
-# Set the dns resolver
-export DNS_SERVER=$(cat /etc/resolv.conf | grep -i '^nameserver' | head -n1 | cut -d ' ' -f2)
-envsubst '${DNS_SERVER}' < /opt/nginx/conf/nginx.conf.template > /opt/nginx/conf/nginx.conf
-
 # Run a command or supervisord
 if [ $# -gt 0 ];then
     # If we passed a command, run it as current user
