@@ -236,7 +236,7 @@ header.fixed .order a {
 
 .box.one {
     padding-top: 50px;
-    background: url(/img/bg_box1.jpg);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/bg_box1.jpg);
     background-repeat: no-repeat;
     background-position: top center;
     background-size: 1920px auto;
@@ -244,7 +244,7 @@ header.fixed .order a {
 }
 
 .box.two {
-    background: url(/img/bg_box2.jpg);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/bg_box2.jpg);
     background-repeat: no-repeat;
     background-position: top center;
     background-size: 1920px auto;
@@ -252,7 +252,7 @@ header.fixed .order a {
 }
 
 .box.three {
-    background: url(/img/bg_box3.jpg);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/bg_box3.jpg);
     background-repeat: no-repeat;
     background-position: bottom center;
     background-size: 1920px auto;
@@ -260,7 +260,7 @@ header.fixed .order a {
 }
 
 .box.four {
-    background: url(/img/bg_box4.jpg);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/bg_box4.jpg);
     background-repeat: no-repeat;
     background-position: bottom center;
     background-size: 1920px auto;
@@ -319,7 +319,7 @@ header.fixed .order a {
     width: 244px;
     height: 600px;
     margin: 20px auto 0;
-    background-image: url(/img/phone.png);
+    background-image: url(https://a1.imagelint.com/www.imagelint.com/img/phone.png);
     background-repeat: no-repeat;
     background-size: 244px 600px;
     position: relative;
@@ -377,7 +377,7 @@ header.fixed .order a {
 .box .wrapper .img .imac {
     width: auto;
     height: 500px;
-    background-image: url(/img/imac.png);
+    background-image: url(https://a1.imagelint.com/www.imagelint.com/img/imac.png);
     background-repeat: no-repeat;
     background-size: auto 500px;
     position: relative;
@@ -561,37 +561,37 @@ label:before {
 
 label[for*='1']:before {
     content: '';
-    background: url(/img/icon_php.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_php.png);
 }
 
 label[for*='2']:before {
     content: '';
-    background: url(/img/icon_laravel.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_laravel.png);
 }
 
 label[for*='3']:before {
     content: '';
-    background: url(/img/icon_js.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_js.png);
 }
 
 label[for*='4']:before {
     content: '';
-    background: url(/img/icon_vue.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_vue.png);
 }
 
 label[for*='5']:before {
     content: '';
-    background: url(/img/icon_html.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_html.png);
 }
 
 label[for*='6']:before {
     content: '';
-    background: url(/img/icon_wordpress.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_wordpress.png);
 }
 
 label[for*='7']:before {
     content: '';
-    background: url(/img/icon_webpack.png);
+    background: url(https://a1.imagelint.com/www.imagelint.com/img/icon_webpack.png);
 }
 
 label:hover {
@@ -643,7 +643,7 @@ input:checked + label {
     z-index: 1;
     left: 15px;
     top: 170px;
-    background-image: url(/img/phone_img_1.jpg);
+    background-image: url(https://a1.imagelint.com/www.imagelint.com/img/phone_img_1.jpg);
     animation: picOne 6s steps(24, start);
     animation-iteration-count: infinite;
 }
@@ -671,7 +671,7 @@ input:checked + label {
     z-index: 1;
     left: 15px;
     top: 330px;
-    background-image: url(/img/phone_img_2.jpg);
+    background-image: url(https://a1.imagelint.com/www.imagelint.com/img/phone_img_2.jpg);
     animation: picTwo 6s steps(24, start);
     animation-iteration-count: infinite;
 }
@@ -861,7 +861,7 @@ input:checked + label {
     }
 
     .box.one {
-        background: url(/img/bg_box1_mobile.jpg);
+        background: url(https://a1.imagelint.com/www.imagelint.com/img/bg_box1_mobile.jpg);
         background-repeat: no-repeat;
         background-position: top center;
         background-size: 1920px auto;
@@ -869,7 +869,7 @@ input:checked + label {
     }
 
     .box.two {
-        background: url(/img/bg_box2_mobile.jpg);
+        background: url(https://a1.imagelint.com/www.imagelint.com/img/bg_box2_mobile.jpg);
         background-position: bottom center;
         background-repeat: no-repeat;
         background-color: #e5e5e5;
