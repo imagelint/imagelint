@@ -644,7 +644,7 @@ input:checked + label {
     left: 15px;
     top: 170px;
     background-image: url(/img/phone_img_1.jpg);
-    animation: picOne 6s steps(6, start);
+    animation: picOne 6s steps(24, start);
     animation-iteration-count: infinite;
 }
 
@@ -672,7 +672,7 @@ input:checked + label {
     left: 15px;
     top: 330px;
     background-image: url(/img/phone_img_2.jpg);
-    animation: picTwo 6s steps(6, start);
+    animation: picTwo 6s steps(24, start);
     animation-iteration-count: infinite;
 }
 
