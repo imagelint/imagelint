@@ -85,7 +85,6 @@ class Compressor {
     }
 
     private function copyToOut() {
-        \Log::debug($this->in);
         File::copy($this->in, $this->out);
         $this->originalSize = filesize($this->out);
         // Filesize is cached, so make sure to clean up the cache

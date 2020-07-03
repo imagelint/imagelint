@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="/css/landingpage.css"/>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta name="author" content="imagelint.com"/>
+    <meta name="copyright" content="Sopamo GmbH">
+    <meta name="revisit-after" content="2 days">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="apple-mobile-web-app-title" content="Imagelint">
+    <meta name="application-name" content="Imagelint">
+    <meta name="theme-color" content="#EB5E0B">
+    <meta name="description" content="Imagelint takes the hassle out of having perfectly optimized images on your website. Try it today :)">
+    <link rel="alternate" hreflang="de" href="https://imagelint.com/de"/>
+    <link rel="alternate" hreflang="x-default" href="https://imagelint.com"/>
+    <title>Automatically optimize and compress images with Imagelint</title>
+</head>
+
+<body>
+
+<header>
+    <div class="wrapper">
+        <div class="logo"><img alt="The imagelint logo is a flash cutting through an image placeholder" src="/img/logo.svg"></div>
+        <div class="order"><a rel="noopener" href="https://sopamo.typeform.com/to/ilnRrw" target="_blank">Beta Signup</a></div>
+        <p style="clear:both"></p>
+    </div>
+</header>
+<a class="anchor" id="one"></a>
+<div class="box one">
+    <div class="wrapper">
+        <div class="content">
+            <h1>Great images, poor performance? <br><span class="orange">You can do better!</span></h1>
+            <div>Optimizing images is really hard. Especially with user provided content. Add image formats like webp which are not supported in every browser and it gets <i>really</i> hard. Imagelint is made to make all of that really easy. Just switch your image URLs and you are done.</div>
+        </div>
+        <div class="img">
+            <div class="phone">
+                <div class="tip_left">Images which are not optimized for mobile are very heavy on your website's load times.</div>
+                <div class="tip_right">Long loading times increase the risk of your users leaving your website.</div>
+                <div id="phone_overlay"></div>
+                <div id="picOne"></div>
+                <div id="picTwo"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a class="anchor" id="two"></a>
+<div class="box two">
+    <div class="wrapper">
+        <div class="img">
+            <div class="imac">
+                <div class="tip_top">The optimized images are served directly by Imagelint.</div>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Imagelint,<br><span class="orange">the simple solution.</span></h1>
+            <div>
+                Perfect images made simple.<br>
+                Just <span class="orange">update your image URLs</span> and rest assured that your images are instantly optimized.
+                Imagelint downloads your images on the fly, optimizes, compresses and resizes them.
+                <br><br><span class="small">Adding Imagelint to your website only takes a few minutes:</span></div>
+
+            <div class="tabs_wrapper">
+
+                <input id="tab1" type="radio" name="tabs" checked>
+                <label for="tab1">PHP</label>
+
+                <input id="tab2" type="radio" name="tabs">
+                <label for="tab2">Laravel</label>
+
+                <input id="tab3" type="radio" name="tabs">
+                <label for="tab3">Javascript</label>
+
+                <input id="tab4" type="radio" name="tabs">
+                <label for="tab4">vue.js</label>
+
+                <input id="tab5" type="radio" name="tabs">
+                <label for="tab5">HTML</label>
+
+                <input id="tab6" type="radio" name="tabs">
+                <label for="tab6">Wordpress</label>
+
+                <input id="tab7" type="radio" name="tabs">
+                <label for="tab7">webpack</label>
+                <p style="clear:both"></p>
+
+                <section id="content1">
+                    <code>
+                        <strong>// Integration with PHP</strong><br>
+                        composer require imagelint/imagelint-php<br>
+                        <br>
+                        &lt;img src="&lt;?= Imagelint::get('example.com/picture.jpg'); ?&gt;"&gt;
+                    </code>
+                    <a rel="noopener" href="https://packagist.org/packages/imagelint/imagelint-php" class="btn" target="_blank">Read more</a>
+                </section>
+
+                <section id="content2">
+                    <code>
+                        <strong>// Integration with Laravel</strong><br>
+                        composer require imagelint/imagelint-php<br>
+                        <br>
+                        &lt;img src="&lt;?= Imagelint::get('example.com/picture.jpg'); ?&gt;"&gt;
+                    </code>
+                    <a rel="noopener" href="https://packagist.org/packages/imagelint/imagelint-php" class="btn" target="_blank">Read more</a>
+                </section>
+
+                <section id="content3">
+                    <code>
+                        <strong>// Integration with Javascript</strong><br>
+                        npm install imagelint --save<br>
+                        <br>
+                        Imagelint.get('http://example.com/picture.jpg')<br>
+                        <br>
+                        // With parameters<br>
+                        Imagelint.get('http://example.com/picture.jpg', [<br>
+                        &nbsp;&nbsp;'width' => 150<br>
+                        ])
+                    </code>
+                    <a rel="noopener" class="btn" href="https://www.npmjs.com/package/imagelint" target="_blank">Read more</a>
+                </section>
+
+                <section id="content4">
+                    <code>
+                        <strong>// Integration with vue.js</strong><br>
+                        &lt;imagelint src="http://example.com/picture.jpg"&gt;&lt;/imagelint&gt;
+                    </code>
+                    Work in progress.
+                </section>
+
+                <section id="content5">
+                    <code>
+                        <strong>// Integration with HTML</strong><br>
+                        &lt;img src="https://a1.imagelint.com/example.com/picture.jpg"&gt;
+                    </code>
+                </section>
+
+                <section id="content6">
+                    <strong>Integration with Wordpress</strong><br>
+                    <ol>
+                        <li>Install the Imagelint Wordpress plugin</li>
+                        <li>Done :)</li>
+                    </ol>
+                </section>
+
+                <section id="content7">
+                    <code>
+                        <strong>// Integration with webpack</strong><br>
+                        Replace your file-loader publicPath with:<br>
+                        publicPath: (process.env.NODE_ENV === 'production') ? 'https://a1.imagelint.com/your-domain.com/' : '/'
+                    </code>
+                </section>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<a class="anchor" id="three"></a>
+<div class="box three">
+    <div class="wrapper">
+        <div class="center">
+            <h1>Why use <span class="orange">Imagelint</span></h1>
+            <ul>
+                <li class="one">
+                    <h3>Optimizes and scales your images automatically</h3>
+                    <div class="info">Imagelint optimizes the size of your images automatically based on the user's device. A smartphone doesn't need the images in the same resolution as a larger device does. This alone can save up top 90% of the file size. That means your images load about 90% faster and your user's mobile data plan is happy as well.</div>
+                </li>
+                <li class="two">
+                    <h3>Automatic WebP / png / jpg encoding</h3>
+                    <div class="info">Different browsers support different image formats. Chrome & Opera support <a rel="noopener" href="https://developers.google.com/speed/webp/" target="_blank">WebP</a> which saves around <a rel="noopener" href="https://developers.google.com/speed/webp/docs/webp_lossless_alpha_study#results" target="_blank">~30% of the file size</a> - while preserving the same image quality.<br><br><br></div>
+                </li>
+                <li class="three">
+                    <h3>Automatic DPR (device pixel ratio) resizing</h3>
+                    <div class="info">The <a href="#two">Imagelint Libraries</a> recognize the DPR of the monitor and deliver images which look awesome on every monitor. You won't have to care about producting @2x versions of your images anymore.</div>
+                </li>
+                <li class="four">
+                    <h3>Backend to optimize your images</h3>
+                    <div class="info">With Imagelint you get a simple tool to adjust the compression rate, size and focal point of your images directly online.</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<a class="anchor" id="four"></a>
+<div class="box four">
+    <div class="wrapper">
+        <div class="center">
+            <h1><span class="orange">Pricing</span></h1>
+            <div class="offer one">
+                <h3>Basic</h3>
+                <div class="duration"><strong>Basic functionality</strong></div>
+                <div class="conditions"><strong>max. 5 GB Traffic / Month</strong><br>We contact you when you get close to the limit to discuss possible upgrades.</div>
+                <div class="price"><a rel="noopener" href="https://sopamo.typeform.com/to/ilnRrw" target="_blank">Free forever</a></div>
+            </div>
+            <div class="offer two">
+                <div class="special">Best value</div>
+                <h3>Pro</h3>
+                <div class="duration"><strong>monthly payment</strong></div>
+                <div class="conditions"><strong>No traffic limits</strong><br>All backend features</div>
+                <div class="price"><a rel="noopener" href="https://sopamo.typeform.com/to/ilnRrw" target="_blank">Free during beta</a><br>0.20€ / 100 original images<br> 0.05€ / GB traffic</div>
+            </div>
+            <div class="offer three">
+                <h3>Dedicated</h3>
+                <div class="duration"><strong>12 months contract duration</strong></div>
+                <div class="conditions"><strong>Dedicated Resources</strong><br>Individual configuration which can be adjusted to <br>your requirements</div>
+                <div class="price"><a rel="noopener" href="https://sopamo.typeform.com/to/ilnRrw" target="_blank">On request</a></div>
+            </div>
+            <p style="clear:both"></p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="wrapper">
+        <div class="left">Made with <span style="color: red">♥</span> by <a rel="noopener" href="https://sopamo.de">Sopamo</a></div>
+        <div class="right"><a rel="noopener" href="https://sopamo.de/kontakt" target="_blank">Kontakt</a> <a href="/impressum">Impressum</a></div>
+        <p style="clear:both"></p>
+    </div>
+</footer>
+
+
+<script type="text/javascript" defer async src="/js/landingpage.js"></script>
+
+</body>
+</html>

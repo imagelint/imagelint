@@ -18,25 +18,6 @@ class PathBuilder {
 
     private static $imagelintParameters = ['imagelintwebp','il-width','il-height','il-dpr','il-lossy'];
 
-    public static function fromNginxLog($path, $params) {
-        if(starts_with($path, '/')) {
-            $path = substr($path, 1);
-        }
-        $expl = explode('/', $path);
-        $domain = $expl[0];
-        $expl = explode('?', $path);
-        $url = urldecode($expl[0]);
-        $foreignParameters = [];
-        $parameters = [];
-        if(count($expl) > 1) {
-            $allParameters = [];
-            parse_str($params,$allParameters);
-            $foreignParameters = self::parseForeignParameters($allParameters);
-            $parameters = self::parseImagelintParameters($allParameters);
-        }
-        return new self($domain, $url, $foreignParameters, $parameters);
-    }
-
     public static function fromRequest($request, $parameters) {
         $expl = explode('/',$request);
         $domain = $expl[0];
