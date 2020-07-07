@@ -16,7 +16,6 @@ mix.combine([
     'resources/assets/css/landingpage/page_main.css'
 ], 'public/css/landingpage.css');
 mix.combine([
-    'node_modules/jquery/dist/jquery.js',
     'resources/assets/js/landingpage/app_header.js',
 ], 'public/js/landingpage.js')
     .browserSync('imagelint.test')

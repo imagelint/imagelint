@@ -21,7 +21,7 @@ class CreateLogTables extends Command
      *
      * @var string
      */
-    protected $description = 'Creates the tables in the mysql database which syslog-ng uses to store data';
+    protected $description = 'Creates database tables for the next 7 days which syslog-ng uses to store data';
 
     /**
      * Execute the console command.
