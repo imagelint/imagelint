@@ -20,7 +20,8 @@ Route::group(['domain' => 'api.' . env('APP_DOMAIN')],function () {
 //        Route::get('/dashboard/bytesSavedPerDay','DashboardController@bytesSavedPerDay');
 //        Route::get('/dashboard/imagesServedPerDay','DashboardController@imagesServedPerDay');
         Route::get('/statistics/daily','Api\StatisticsController@daily');
-//        Route::post('/originals/{original_id}','OriginalsController@update');
-//        Route::get('/originals','OriginalsController@get');
+        Route::post('/originals/{original_id}','Api\OriginalsController@update');
+        Route::get('/originals','Api\OriginalsController@list');
+        Route::get('/preview/{quality}/{image}','Api\PreviewController@preview')->where(['image' => '.*']);
     });
 });
