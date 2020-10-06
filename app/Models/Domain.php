@@ -17,11 +17,4 @@ class Domain extends Model {
     public function user() {
         return $this->belongsTo(User::class);
     }
-
-    public function isExist($domain, $userId) {
-        $result = $this->where('user_id', $userId)->where('domain', $domain)->first();
-        if(empty($result))
-            return true;
-        return false;
-    }
 }

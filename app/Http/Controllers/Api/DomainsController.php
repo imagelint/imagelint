@@ -4,34 +4,39 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Domain;
+use App\Repositories\DomainRepository;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 class DomainsController extends Controller
 {
-    public function list(Request $request, Domain $domain) {
+    public function list(Request $request)
+    {
         $user = $request->user();
-        return response()->json($domain->where('user_id', $user->id)->get());
+        $domains = Domain::where('user_id', $user->id)->get()->transform(function ($domain) {
+            return $domain->only(['id', 'domain', 'created_at']);
+        });
+        return response()->json($domains);
     }
-    public function add(Request $request) {
+
+    public function add(Request $request)
+    {
         $user = $request->user();
         $response = [];
-        try {
+        $inputDomain = trim(strtolower($request->input('domain')));
+        if (DomainRepository::isDomainExists($user->id, $inputDomain))
+        {
+            app()->abort(400, 'This domain exists already');
+        }
+        DB::transaction(function () use ($inputDomain, $user) {
             $domain = new Domain();
             $domain->user_id = $user->id;
-            $domain->domain = trim(strtolower($request->input('domain')));
+            $domain->domain = $inputDomain;
             $domain->account = 'a1.imagelint.test';
             $domain->save();
-            $response['success'] = 1;
-            // $response['message'] = 'The domain is successfully added';
-        } catch (QueryException $e){
-            $errorCode = $e->errorInfo[1];
-            $response['success'] = 0;
-            if($errorCode == 1062)
-                $response['message'] = 'The domain is exist';
-            else
-                $response['message'] = 'Something is wrong';
-        }
+        }, 5);
+        $response['success'] = 1;
         return response()->json($response);
     }
 }
