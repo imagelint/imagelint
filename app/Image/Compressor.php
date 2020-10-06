@@ -179,7 +179,12 @@ class Compressor
 
     public function compressAvif()
     {
-        exec(base_path('bin/avif') . ' -q ' . $this->getQuality() . ' -e ' . escapeshellarg($this->out) . ' -o ' . escapeshellarg($this->out));
+        // Compression level (0..63), [default: 25]
+        $quality = 63 - floor((int)$this->getQuality() / 100 * 63);
+        if($quality<0) $quality = 0;
+        $dest = str_replace('.'.File::extension($this->out), '.avif', $this->out);
+        exec(base_path('bin/avif') . ' -e ' . escapeshellarg($this->out) . ' -o ' . escapeshellarg($dest) . ' -q ' . $quality);
+        File::move($dest, $this->out);
         if ($this->originalSize <= filesize($this->out)) {
             $this->restoreInToOut();
         }
