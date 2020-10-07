@@ -25,11 +25,10 @@ class DomainsController extends Controller
         $user = $request->user();
         $response = [];
         $inputDomain = trim(strtolower($request->input('domain')));
-        if (DomainRepository::isDomainExists($user->id, $inputDomain))
-        {
-            app()->abort(400, 'This domain exists already');
-        }
         DB::transaction(function () use ($inputDomain, $user) {
+            if (DomainRepository::isDomainExists($user->id, $inputDomain)) {
+                app()->abort(400, 'This domain exists already');
+            }
             $domain = new Domain();
             $domain->user_id = $user->id;
             $domain->domain = $inputDomain;
