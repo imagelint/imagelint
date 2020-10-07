@@ -53,11 +53,10 @@ class Compressor
         if ($filetype !== 'image/svg+xml') {
             $this->resize();
         }
-
-        if ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
-            $this->compressWebp();
-        } elseif ((bool)$this->modifiers['avif'] === true) {
+        if ((bool)$this->modifiers['avif'] === true) {
             $this->compressAvif();
+        } elseif ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
+            $this->compressWebp();
         } else {
             switch ($filetype) {
                 case 'image/jpeg':
@@ -181,7 +180,12 @@ class Compressor
     {
         // Compression level (0..63), [default: 25]
         $quality = 63 - floor((int)$this->getQuality() / 100 * 63);
-        if($quality<0) $quality = 0;
+        if($quality<0) {
+            $quality = 0;
+        }
+        if($quality>63) {
+            $quality = 63;
+        }
         $dest = str_replace('.'.File::extension($this->out), '.avif', $this->out);
         exec(base_path('bin/avif') . ' -e ' . escapeshellarg($this->out) . ' -o ' . escapeshellarg($dest) . ' -q ' . $quality);
         File::move($dest, $this->out);
