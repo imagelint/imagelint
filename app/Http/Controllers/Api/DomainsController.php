@@ -20,13 +20,13 @@ class DomainsController extends Controller
         return response()->json($domains);
     }
 
-    public function add(Request $request)
+    public function add(Request $request, DomainRepository $domainRepository)
     {
         $user = $request->user();
         $response = [];
         $inputDomain = trim(strtolower($request->input('domain')));
-        DB::transaction(function () use ($inputDomain, $user) {
-            if (DomainRepository::isDomainExists($user->id, $inputDomain)) {
+        DB::transaction(function () use ($inputDomain, $user, $domainRepository) {
+            if ($domainRepository->domainExists($user->id, $inputDomain)) {
                 app()->abort(400, 'This domain exists already');
             }
             $domain = new Domain();
