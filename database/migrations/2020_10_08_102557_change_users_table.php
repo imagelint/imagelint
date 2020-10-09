@@ -14,12 +14,9 @@ class ChangeUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            //$table->unsignedBigInteger('account_id');
-            /*
-             * To add the constraint to an existing column, you have to do $table->foreignId('user_id')->constrained()->change()
-             */
-            $table->foreignId('account_id')->constrained('accounts');
+            $table->foreignId('account_id')->nullable()->constrained('accounts');
         });
+        DB::table('users')->update(array('account_id' => 1));
     }
 
     /**
@@ -30,7 +27,7 @@ class ChangeUsersTable extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign('account_id');
+            $table->dropForeign(['account_id']);
             $table->dropColumn('account_id');
         });
     }

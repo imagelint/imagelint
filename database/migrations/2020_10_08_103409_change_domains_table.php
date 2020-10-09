@@ -14,10 +14,13 @@ class ChangeDomainsTable extends Migration
     public function up()
     {
         Schema::table('domains', function (Blueprint $table) {
-            //$table->unsignedBigInteger('account_id');
             $table->dropColumn('account');
-            $table->foreignId('account_id')->constrained('accounts');
+            $table->dropIndex('user_id');
+            $table->dropColumn('user_id');
+            $table->foreignId('account_id')->nullable()->constrained('accounts');
         });
+        DB::table('domains')->update(array('account_id' => 1));
+
     }
 
     /**
@@ -28,8 +31,10 @@ class ChangeDomainsTable extends Migration
     public function down()
     {
         Schema::table('domains', function (Blueprint $table) {
-            $table->dropForeign('account_id');
+            $table->dropForeign(['account_id']);
+            $table->dropColumn('account_id');
             $table->string('account')->index();
+            $table->unsignedInteger('user_id')->index('user_id');
         });
     }
 }

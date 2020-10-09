@@ -18,6 +18,9 @@ class CreateAccounts extends Migration
             $table->string('account');
             $table->timestamps();
         });
+        $account = new \App\Models\Account();
+        $account->account = 'a1.imagelint.test';
+        $account->save();
     }
 
     /**
