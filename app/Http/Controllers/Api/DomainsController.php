@@ -38,7 +38,6 @@ class DomainsController extends Controller
         $response['success'] = 1;
         return response()->json($response);
     }
-<<<<<<< HEAD
     public function checkIfExist(Request $request, DomainRepository $domainRepository)
     {
         $user = $request->user();
@@ -47,6 +46,4 @@ class DomainsController extends Controller
         }
         return response()->json(['success'=>true]);
     }
-=======
->>>>>>> master
 }
