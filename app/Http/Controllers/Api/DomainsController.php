@@ -40,7 +40,7 @@ class DomainsController extends Controller
     public function checkIfExist(Request $request, DomainRepository $domainRepository)
     {
         $user = $request->user();
-        if (!$domainRepository->domainExists($user->id, trim(strtolower($request->input('domain'))))) {
+        if (!$domainRepository->domainExists($user->account_id, trim(strtolower($request->input('domain'))))) {
             app()->abort(400, 'This domain doesn\'t exist');
         }
         return response()->json(['success'=>true]);
