@@ -14,7 +14,7 @@ class DomainsController extends Controller
     public function list(Request $request)
     {
         $user = $request->user();
-        $domains = Domain::where('user_id', $user->id)->get()->transform(function ($domain) {
+        $domains = Domain::where('account_id', $user->account_id)->get()->transform(function ($domain) {
             return $domain->only(['id', 'domain', 'created_at']);
         });
         return response()->json($domains);
@@ -26,13 +26,12 @@ class DomainsController extends Controller
         $response = [];
         $inputDomain = trim(strtolower($request->input('domain')));
         DB::transaction(function () use ($inputDomain, $user, $domainRepository) {
-            if ($domainRepository->domainExists($user->id, $inputDomain)) {
+            if ($domainRepository->domainExists($user->account_id, $inputDomain)) {
                 app()->abort(400, 'This domain exists already');
             }
             $domain = new Domain();
-            $domain->user_id = $user->id;
             $domain->domain = $inputDomain;
-            $domain->account = 'a1.imagelint.test';
+            $domain->account_id = $user->account_id;
             $domain->save();
         }, 5);
         $response['success'] = 1;
