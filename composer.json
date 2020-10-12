@@ -19,7 +19,8 @@
         "laravel/tinker": "^2.0",
         "laravel/ui": "^2.0",
         "pguardiario/phpuri": "^1.0",
-        "voku/simple_html_dom": "^4.7"
+        "voku/simple_html_dom": "^4.7",
+        "doctrine/dbal": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.0",

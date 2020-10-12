@@ -13,8 +13,4 @@ class Domain extends Model {
             $model->created_at = $model->freshTimestamp();
         });
     }
-
-    public function user() {
-        return $this->belongsTo(User::class);
-    }
 }

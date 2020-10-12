@@ -13,10 +13,15 @@ class ChangeUsersTable extends Migration
      */
     public function up()
     {
+        DB::transaction(function () {
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('account_id')->nullable()->constrained('accounts');
         });
-        DB::table('users')->update(array('account_id' => 1));
+        DB::table('users')->update(['account_id' => 1]);
+            Schema::table('users', function (Blueprint $table) {
+                $table->unsignedBigInteger('account_id')->nullable(false)->change();
+            });
+        });
     }
 
     /**
