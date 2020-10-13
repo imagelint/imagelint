@@ -3,6 +3,7 @@
 namespace App\Stats;
 
 use App\Access;
+use App\Models\Account;
 use App\Models\Domain;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -48,12 +49,12 @@ class StatsEngine {
         return array_reverse($data);
     }
 
-    public function daily($userId, $start, $end) {
+    public function daily($accountId, $start, $end) {
         $start = Carbon::parse($start);
         $now = Carbon::parse($start);
         $end = Carbon::parse($end);
         $data = [];
-        $accounts = Domain::where('user_id', $userId)->groupBy('account')->pluck('account');
+        $accounts = Account::where('id', $accountId)->groupBy('account')->pluck('account');
 
         while($now <= $end) {
             $tableName = 'access_logs_' . $now->format('Ymd');

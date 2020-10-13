@@ -8,7 +8,7 @@ use App\Models\Domain;
 
 class DomainRepository
 {
-    public function domainExists($userId, $domain) {
-        return Domain::where('user_id', $userId)->where('domain', $domain)->exists();
+    public function domainExists($accountId, $domain) {
+        return Domain::where('account_id', $accountId)->where('domain', $domain)->exists();
     }
 }
