@@ -38,7 +38,7 @@ class BenchmarkBinaries extends Command
      */
     public function handle()
     {
-        $headers = ['Name', 'JPG - time (ms)', 'JPG - memory'];
+        $headers = ['Name', 'JPG - time (ms)', 'JPG - memory (MB)', 'WEBP - time (ms)', 'WEBP - memory (MB)', 'AVIF - time (ms)', 'AVIF - memory (MB)', 'width*height (px)'];
         $results = [];
         $path = $this->argument('path');
         $this->info('Path dir: ' . $path);
@@ -47,13 +47,22 @@ class BenchmarkBinaries extends Command
         $bar = $this->output->createProgressBar(count($files));
         $bar->start();
         foreach ($files as $file) {
+            list($width, $height, $type, $attr) = getimagesize($file->getPathname());
             $dest = $path . '/output/' . $file->getRelativePathname();
 
             $jpgStartTime = microtime(true);
-            $this->compressJpg($file->getPathname(), $dest);
+            $jpgMemory = $this->compressJpg($file->getPathname(), $dest);
             $jpgEndTime = microtime(true);
-            $jpgMemory = memory_get_peak_usage();
-            $results[] = [$file->getRelativePathname(), ($jpgEndTime - $jpgStartTime) * 1000, $jpgMemory];
+
+            $webpStartTime = microtime(true);
+            $webpMemory = $this->compressWebp($file->getPathname(), $dest);
+            $webpEndTime = microtime(true);
+
+            $avifStartTime = microtime(true);
+            $avifMemory = $this->compressAvif($file->getPathname(), $dest);
+            $avifEndTime = microtime(true);
+
+            $results[] = [$file->getRelativePathname(), ($jpgEndTime - $jpgStartTime) * 1000, $jpgMemory/1024, ($webpEndTime - $webpStartTime) * 1000, $webpMemory/1024, ($avifEndTime - $avifStartTime) * 1000, $avifMemory/1024, $width*$height];
 
             $bar->advance();
         }
@@ -62,66 +71,34 @@ class BenchmarkBinaries extends Command
         return 0;
     }
 
-    public function compressWebp()
+    public function compressWebp($file, $destination)
     {
-        $size = getimagesize($this->in);
-        $filetype = $size['mime'];
-        if ($filetype === 'image/png' && !$this->modifiers['lossy']) {
-            $params = '-near_lossless ' . (100 - $this->getQuality());
-        } else {
-            $params = '-q ' . $this->getQuality();
-        }
-        $params .= ' -m 6 -af -mt';
-        $command = base_path('bin/cwebp')
-            . ' ' .
-            escapeshellarg($this->out)
+        $dest = str_replace('.' . File::extension($destination), '.webp', $destination);
+        $params = ' -m 6 -af -mt';
+        $command = 'time -o compress-webp.txt -f "%M" bin/cwebp ' . escapeshellarg($file)
             . ' ' . $params . ' -o ' .
-            escapeshellarg($this->out);
-        $output = null;
+            escapeshellarg($dest);
+        $output=null;
         exec($command, $output);
-
-        if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
-        }
-    }
-
-    public function compressPng()
-    {
-        exec(base_path('bin/pngcrush') . ' -blacken -bail -rem alla -reduce -ow ' . escapeshellarg($this->out));
-        exec(base_path('bin/zopflipng') . ' --lossy_transparent -y ' . escapeshellarg($this->out) . ' ' . escapeshellarg($this->out));
-        if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
-        }
-    }
-
-    public function compressSVG()
-    {
-        exec('svgo --multipass ' . escapeshellarg($this->out));
-        if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
-        }
+        $file = File::get('compress-webp.txt');
+        File::delete('compress-webp.txt');
+        return (int)$file;
     }
 
     public function compressJpg($file, $destination)
     {
-        exec(base_path('bin/jpegoptim') . ' -s --all-normal ' . escapeshellarg($file) . ' --dest=' . escapeshellarg(dirname($destination)));
+        exec('time -o compress-jpg.txt -f "%M" bin/jpegoptim -s --all-normal ' . escapeshellarg($file) . ' --dest=' . escapeshellarg(dirname($destination)));
+        $file = File::get('compress-jpg.txt');
+        File::delete('compress-jpg.txt');
+        return (int)$file;
     }
 
-    public function compressAvif()
+    public function compressAvif($file, $destination)
     {
-        // Compression level (0..63), [default: 25]
-        $quality = 63 - floor((int)$this->getQuality() / 100 * 63);
-        if ($quality < 0) {
-            $quality = 0;
-        }
-        if ($quality > 63) {
-            $quality = 63;
-        }
-        $dest = str_replace('.' . File::extension($this->out), '.avif', $this->out);
-        exec(base_path('bin/avif') . ' -e ' . escapeshellarg($this->out) . ' -o ' . escapeshellarg($dest) . ' -q ' . $quality);
-        File::move($dest, $this->out);
-        if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
-        }
+        $dest = str_replace('.' . File::extension($destination), '.avif', $destination);
+        exec('time  -o compress-avif.txt -f "%M" bin/avif -e ' . escapeshellarg($file) . ' -o ' . escapeshellarg($dest));
+        $file = File::get('compress-avif.txt');
+        File::delete('compress-avif.txt');
+        return (int)$file;
     }
 }
