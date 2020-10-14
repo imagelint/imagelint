@@ -20,6 +20,7 @@ RUN apt-get update \
         gcc \
         build-essential \
         ca-certificates \
+        time \
         ### syslog-ng dependencies
         libglib2.0-dev \
         libssl-dev \
