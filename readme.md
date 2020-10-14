@@ -28,3 +28,35 @@ This returns the image `yourserver.com/avatars/me.png` optimized, resized to 100
 
 in progress...
 
+apt-get install time
+
+apt-get install glib2.0-dev
+apt-get install expat
+apt-get install libjpeg-turbo8
+apt-get install fftw3
+apt-get install imagemagick
+apt-get install orc-0.4
+apt-get install libwebp-dev
+apt-get install libvips
+apt-get install libaom-dev
+apt-get install libde265-dev
+apt-get install git build-essential libxml2-dev libfftw3-dev libmagickwand-dev libopenexr-dev liborc-0.4-0 gobject-introspection libgsf-1-dev libglib2.0-dev liborc-0.4-dev
+apt-get install automake libtool swig gtk-doc-tools 
+
+git clone https://github.com/strukturag/libheif
+cd libheif
+./autogen.sh
+./configure
+make
+make install
+
+git clone https://github.com/libvips/libvips.git
+cd libvips
+./autogen.sh
+make
+make install
+
+ln -s /var/www/html/rotating-wallpapers/libvips/tools/vips /usr/bin/vips
+ln -s /var/www/html/rotating-wallpapers/libvips/tools/vips /usr/local/bin/vips
+
+vips heifsave --compression=av1 t.jpg avif.avif
