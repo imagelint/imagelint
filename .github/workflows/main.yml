@@ -44,5 +44,10 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       -
+        name: Scan image
+        uses: Azure/container-scan@v0
+        with:
+          image-name: registry.gitlab.com/imagelint/imagelint:test
+      -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
