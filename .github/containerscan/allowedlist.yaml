@@ -1,0 +1,3 @@
+general:
+  vulnerabilities:
+    - CVE-2020-13777 # We can ignore this, because it's fixed in 3.6.13-2ubuntu1.1 (https://www.ubuntuupdates.org/package/core/focal/main/updates/libgnutls30)
