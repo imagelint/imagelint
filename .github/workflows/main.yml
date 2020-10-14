@@ -27,6 +27,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
+          context: .
+          file: ./docker/app/Dockerfile.master
           tags: registry.gitlab.com/imagelint/imagelint:test
       -
         name: Image digest
