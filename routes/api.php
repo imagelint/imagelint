@@ -25,5 +25,6 @@ Route::group(['domain' => 'api.' . env('APP_DOMAIN')], function () {
         Route::post('/domain/exist', 'Api\DomainsController@checkIfExist');
 //        Route::post('/originals/{original_id}','OriginalsController@update');
 //        Route::get('/originals','OriginalsController@get');
+        Route::get('/account', 'Api\AccountsController@one');
     });
 });

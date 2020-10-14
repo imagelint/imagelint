@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Domain;
 use App\Repositories\DomainRepository;
 use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class DomainsController extends Controller
