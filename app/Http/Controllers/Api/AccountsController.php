@@ -14,7 +14,7 @@ class AccountsController extends Controller
         if(empty($user->account)) {
             app()->abort(400, 'This account doesn\'t exist');
         }
-        $account = $user->account;
+        $account = $user->account->only(['id', 'account']);
         return response()->json($account);
     }
 }

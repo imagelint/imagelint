@@ -13,12 +13,6 @@ class ChangeUsersTable extends Migration
      */
     public function up()
     {
-<<<<<<< HEAD
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('account_id')->nullable()->constrained('accounts');
-        });
-        DB::table('users')->update(array('account_id' => 1));
-=======
         DB::transaction(function () {
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('account_id')->nullable()->constrained('accounts');
@@ -28,7 +22,6 @@ class ChangeUsersTable extends Migration
                 $table->unsignedBigInteger('account_id')->nullable(false)->change();
             });
         });
->>>>>>> master
     }
 
     /**

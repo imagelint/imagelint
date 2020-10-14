@@ -13,16 +13,6 @@ class ChangeDomainsTable extends Migration
      */
     public function up()
     {
-<<<<<<< HEAD
-        Schema::table('domains', function (Blueprint $table) {
-            $table->dropColumn('account');
-            $table->dropIndex('user_id');
-            $table->dropColumn('user_id');
-            $table->foreignId('account_id')->nullable()->constrained('accounts');
-        });
-        DB::table('domains')->update(array('account_id' => 1));
-
-=======
         DB::transaction(function () {
             Schema::table('domains', function (Blueprint $table) {
                 $table->dropColumn('account');
@@ -35,7 +25,6 @@ class ChangeDomainsTable extends Migration
                 $table->unsignedBigInteger('account_id')->nullable(false)->change();
             });
         });
->>>>>>> master
     }
 
     /**
