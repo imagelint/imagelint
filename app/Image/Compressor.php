@@ -170,7 +170,7 @@ class Compressor
 
     public function compressJpg()
     {
-        exec(base_path('bin/jpegoptim') . ' -s --all-normal -m ' . $this->getQuality() . ' ' . escapeshellarg($this->out) . ' --dest=' . escapeshellarg(dirname($this->out)));
+        exec(base_path('bin/jpegoptim') . ' -s -o --all-normal -m' . $this->getQuality() . ' ' . escapeshellarg($this->out) . ' --dest=' . escapeshellarg(dirname($this->out)));
         if ($this->originalSize <= filesize($this->out)) {
             $this->restoreInToOut();
         }
