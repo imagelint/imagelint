@@ -14,15 +14,15 @@ class BenchmarkRequests extends Command
     protected $height = 500;
     protected $index = 0;
     protected $amount = 0;
-    protected $amountBrunches;
-    protected $amountOfBrunch;
+    protected $amountBunches;
+    protected $amountOfBunch;
     protected $client;
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'benchmark:requests {url} {amount=100} {amountOfBrunch=50}';
+    protected $signature = 'benchmark:requests {url} {amount=100} {amountOfBunch=50}';
 
     /**
      * The console command description.
@@ -52,14 +52,14 @@ class BenchmarkRequests extends Command
         $promises = [];
         $this->url = $this->argument('url');
         $this->amount = $this->argument('amount');
-        $this->amountOfBrunch = $this->argument('amountOfBrunch');
-        $this->amountBrunches = ceil($this->amount / $this->amountOfBrunch);
+        $this->amountOfBunch = $this->argument('amountOfBunch');
+        $this->amountBunches = ceil($this->amount / $this->amountOfBunch);
 
         if(!app()->environment('production') && strpos($this->url, 'imagelint.com') !== false) {
             $this->error('You can\'t use imagelint.com on a development server!');
             exit;
         }
-        for($i=0;$i<$this->amountBrunches;$i++) {
+        for($i=0;$i<$this->amountBunches;$i++) {
             $promise = new Promise();
             $promise
                 ->then(function ($value) {
@@ -74,7 +74,7 @@ class BenchmarkRequests extends Command
             if($this->doBunch()) {
                 $promise->resolve('did bunch '.$i);
             }
-            $promises[] = &$promise;
+            $promises[] = $promise;
         }
         foreach ($promises as $promise) {
             $promise->wait();
@@ -84,19 +84,21 @@ class BenchmarkRequests extends Command
     }
     public function doBunch() {
         $promises = [];
-        for($i = 0; $i<$this->amountOfBrunch;$i++) {
+        for($i = 0; $i<$this->amountOfBunch;$i++) {
             if($this->index == $this->amount) {
                 break;
             }
-            $promises[] = $this->client->getAsync($this->url, ['il-width' => $this->width, 'il-height' => $this->height])->then(
+            if($this->index % 2 - 0) {
+                $this->width++;
+            } else {
+                $this->height++;
+            }
+            $this->index++;
+            $promises[] = $this->client->getAsync($this->url, [
+                'query' =>  ['il-width' => $this->width, 'il-height' => $this->height]
+            ])->then(
                 function (Response $response) {
-                    if($this->index % 2 - 0) {
-                        $this->width++;
-                    } else {
-                        $this->height++;
-                    }
-                    $this->index++;
-                    $this->info('Request '.$this->index.': ok. Params: il-width='.$this->width.', il-height='.$this->height);
+                    $this->info('Request '.$this->index.': ok');
                     return $response->getBody();
                 }, function ($exception) {
                 $this->info('Request'.$this->index.': error');
