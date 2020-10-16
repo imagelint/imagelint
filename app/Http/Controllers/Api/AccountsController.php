@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 
 class AccountsController extends Controller
 {
-    public function one(Request $request)
+    public function mine(Request $request)
     {
         $user = $request->user();
-        if(empty($user->account)) {
+        if(!$user->account) {
             app()->abort(400, 'This account doesn\'t exist');
         }
         $account = $user->account->only(['id', 'account']);
