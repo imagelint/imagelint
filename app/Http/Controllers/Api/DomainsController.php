@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Domain;
 use App\Repositories\DomainRepository;
 use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class DomainsController extends Controller
@@ -36,5 +35,13 @@ class DomainsController extends Controller
         }, 5);
         $response['success'] = 1;
         return response()->json($response);
+    }
+    public function checkIfExists(Request $request, DomainRepository $domainRepository)
+    {
+        $user = $request->user();
+        if (!$domainRepository->domainExists($user->account_id, $request->input('domain'))) {
+            app()->abort(400, 'This domain doesn\'t exist');
+        }
+        return response()->json(['success'=>true]);
     }
 }

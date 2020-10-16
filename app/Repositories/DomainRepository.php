@@ -9,6 +9,6 @@ use App\Models\Domain;
 class DomainRepository
 {
     public function domainExists($accountId, $domain) {
-        return Domain::where('account_id', $accountId)->where('domain', $domain)->exists();
+        return Domain::where('account_id', $accountId)->where('domain', trim(strtolower($domain)))->exists();
     }
 }

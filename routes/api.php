@@ -22,7 +22,9 @@ Route::group(['domain' => 'api.' . env('APP_DOMAIN')], function () {
         Route::get('/statistics/daily', 'Api\StatisticsController@daily');
         Route::get('/domains', 'Api\DomainsController@list');
         Route::post('/domains', 'Api\DomainsController@add');
+        Route::post('/domain/exists', 'Api\DomainsController@checkIfExists');
 //        Route::post('/originals/{original_id}','OriginalsController@update');
 //        Route::get('/originals','OriginalsController@get');
+        Route::get('/account', 'Api\AccountsController@mine');
     });
 });
