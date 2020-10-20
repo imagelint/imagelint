@@ -70,6 +70,7 @@ class LoginController extends Controller
                 'id' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
+                'account' => $user->account,
                 'token' => $token,
             ]);
         }
