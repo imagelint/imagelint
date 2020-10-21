@@ -44,7 +44,7 @@ class SumLogs extends Command
     public function handle()
     {
         $tables = $this->geLogsTables();
-        $users = User::with('account')->get();
+        $users = User::get();
         foreach ($users as $user) {
             $originals = Original::where('user_id', $user->id)->get(['id', 'path']);
             foreach ($originals as $original) {
@@ -70,7 +70,6 @@ class SumLogs extends Command
         }
         foreach ($tables as $table) {
             $day = $this->getDateFromTableName($table);
-            $this->info($this->getDaysFromNow($day));
             if ($this->getDaysFromNow($day) > 30) {
                 Schema::dropIfExists($table);
             }
