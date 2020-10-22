@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class SumLogs extends Command
 {
@@ -43,7 +44,20 @@ class SumLogs extends Command
      */
     public function handle()
     {
-        $tables = $this->geLogsTables();
+        $tables = $this->geLogTables();
+        $originals = collect([]);
+        Original::select('id', 'path')->orderBy('id')->chunk(1000, function ($entries) use (&$originals)
+    {
+        $this->info(count($entries));
+            foreach ($entries as $entry) {
+                $filePath = $this->getFilePath($entry->path);
+                $this->info($filePath);
+                $originals->put($filePath, $entry);
+            }
+        });
+        Log::debug(json_encode($originals->all()));
+
+        /*
         $users = User::get();
         foreach ($users as $user) {
             $originals = Original::where('user_id', $user->id)->get(['id', 'path']);
@@ -68,20 +82,28 @@ class SumLogs extends Command
                 }
             }
         }
+        */
+        /*
+         * It works ok
         foreach ($tables as $table) {
-            $day = $this->getDateFromTableName($table);
-            if ($this->getDaysFromNow($day) > 30) {
-                Schema::dropIfExists($table);
+            try{
+                $day = $this->getDateFromTableName($table);
+                if ($this->getDaysFromNow($day) > 30) {
+                    Schema::dropIfExists($table);
+                }
+            } catch (\Exception $e) {
+                Log::debug($e->getMessage());
             }
         }
+         */
         return 0;
     }
 
-    protected function geLogsTables()
+    private function geLogTables()
     {
         $logsTables = [];
-        $AllTables = array_map('reset', DB::select('SHOW TABLES'));
-        foreach ($AllTables as $table) {
+        $allTables = array_map('reset', DB::select('SHOW TABLES'));
+        foreach ($allTables as $table) {
             if (strpos($table, 'access_logs_') !== false) {
                 $logsTables[] = $table;
             }
@@ -89,18 +111,18 @@ class SumLogs extends Command
         return $logsTables;
     }
 
-    protected function getFilePath($originalPath)
+    private function getFilePath($originalPath)
     {
         $params = '';
         $parts = explode('/', $originalPath);
-        if (strpos($parts[0], '.') === false) {
+        if (!Str::startsWith($parts[0], '.')) {
             $params = '?' . $parts[0];
             array_shift($parts);
         }
         return implode('/', $parts) . $params;
     }
 
-    protected function getSumFromEntries($entries)
+    private function getSumFromEntries($entries)
     {
         $result = [
             'size' => 0,
@@ -112,24 +134,19 @@ class SumLogs extends Command
         return $result;
     }
 
-    protected function getDateFromTableName($table)
+    private function getDateFromTableName($table)
     {
         $parts = explode('_', $table);
         if (empty($parts[2])) {
-            return '';
+            throw new \Exception('Wrong table name');
         }
         return substr($parts[2], 0, 4) . '-' . substr($parts[2], 4, 2) . '-' . substr($parts[2], 6, 2);
     }
 
-    protected function getDaysFromNow($day)
+    private function getDaysFromNow($day)
     {
-        try {
-            $dateTable = new \DateTime($day);
-            $now = new \DateTime();
-            return $now->diff($dateTable)->format("%a");
-        } catch (\Exception $e) {
-            Log::debug($e->getMessage());
-            return 0;
-        }
+        $dateTable = new \DateTime($day);
+        $now = new \DateTime();
+        return $now->diff($dateTable)->format("%a");
     }
 }
