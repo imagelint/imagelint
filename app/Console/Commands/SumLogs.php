@@ -45,17 +45,41 @@ class SumLogs extends Command
     public function handle()
     {
         $tables = $this->geLogTables();
+        $tables=['access_logs_20201019'];
         $originals = collect([]);
-        Original::select('id', 'path')->orderBy('id')->chunk(1000, function ($entries) use (&$originals)
-    {
-        $this->info(count($entries));
-            foreach ($entries as $entry) {
-                $filePath = $this->getFilePath($entry->path);
-                $this->info($filePath);
-                $originals->put($filePath, $entry);
+        $originalEntries = Original::select('id', 'path')->get();
+        foreach ($originalEntries as $entry) {
+            $filePath = $this->getFilePathFromOriginal($entry->path);
+            //$this->info($filePath);
+            $originals->put($filePath, $entry);
+        }
+        Log::debug(json_encode($originals));
+        foreach ($tables as $table) {
+            try {
+                $dataToSave = collect([]);
+                $accessLogs = collect([]);
+                $day = $this->getDateFromTableName($table);
+                if ($this->getDaysFromNow($day) > 1) {
+                    DB::table($table)->select('request', 'size')->orderBy('created_at')->chunk(1000, function ($logEntries) use (&$accessLogs, &$originals) {
+                        foreach ($logEntries as $log) {
+                            $filePath = $this->getFilePathFromLog($log->request);
+                            $accessLogs->put($filePath, $log);
+                        }
+                    });
+                    $originals->each(function ($original, $path) use (
+                        $accessLogs
+                    ) {
+                        if($path === 'lukasz-socha.pl/wp-content/uploads/2014/03/slider2.jpg?il-height=75&il-avif=1') {
+                            $this->info($path);
+                            $accessLogsForPath = $accessLogs->keyBy($path);
+                            Log::debug($accessLogsForPath->all());
+                        }
+                    });
+                }
+            } catch (\Exception $e) {
+                $this->info($e->getMessage());
             }
-        });
-        Log::debug(json_encode($originals->all()));
+        }
 
         /*
         $users = User::get();
@@ -66,7 +90,7 @@ class SumLogs extends Command
                 $this->info($filePath);
                 foreach ($tables as $table) {
                     $day = $this->getDateFromTableName($table);
-                    if ($this->getDaysFromNow($day) > 1) {
+                    if ($this->getDaysFromNow($day) > 1) {g
                         $entries = DB::table($table)->where('request', 'like', '%' . $filePath . '%')->get();
                         $result = $this->getSumFromEntries($entries);
 
@@ -111,15 +135,24 @@ class SumLogs extends Command
         return $logsTables;
     }
 
-    private function getFilePath($originalPath)
+    private function getFilePathFromOriginal($path)
     {
         $params = '';
-        $parts = explode('/', $originalPath);
+        $parts = explode('/', $path);
         if (!Str::startsWith($parts[0], '.')) {
             $params = '?' . $parts[0];
             array_shift($parts);
         }
         return implode('/', $parts) . $params;
+    }
+
+    private function getFilePathFromLog($path)
+    {
+        $parts = explode(' ', $path);
+        if (empty($parts[1])) {
+            throw new \Exception('A file path doesn\'t exist');
+        }
+        return ltrim($parts[1], '/');
     }
 
     private function getSumFromEntries($entries)
