@@ -4,11 +4,10 @@ namespace App\Console\Commands;
 
 use App\Models\AccessLog;
 use App\Models\Original;
-use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class SumLogs extends Command
@@ -44,24 +43,21 @@ class SumLogs extends Command
      */
     public function handle()
     {
-        $count = 0;
         $tables = $this->geLogTables();
-        $tables=['access_logs_20201019'];
         $originals = collect([]);
         $originalEntries = Original::select('id', 'path')->get();
         foreach ($originalEntries as $entry) {
             $filePath = $this->getFilePathFromOriginal($entry->path);
-            //$this->info($filePath);
             $originals->put($filePath, $entry);
         }
-        Log::debug(json_encode($originals));
         foreach ($tables as $table) {
             try {
-                $dataToSave = collect([]);
+                $dataToInsert = collect([]);
                 $accessLogs = collect([]);
                 $day = $this->getDateFromTableName($table);
-                if ($this->getDaysFromNow($day) > 1) {
-                    DB::table($table)->select('request', 'size')->orderBy('created_at')->chunk(1000, function ($logEntries) use (&$accessLogs, &$originals, &$count) {
+
+                if ($this->getDaysFromNow($day) > 1 && !AccessLog::select('id')->where('day',$day)->exists()) {
+                    DB::table($table)->select('request', 'size')->orderBy('created_at')->chunk(1000, function ($logEntries) use (&$accessLogs, &$originals) {
                         foreach ($logEntries as $log) {
                             $filePath = $this->getFilePathFromLog($log->request);
                             if($originals->has($filePath)) {
@@ -86,56 +82,26 @@ class SumLogs extends Command
                             }
                         }
                     });
-                    Log::debug($accessLogs->all());
-                    /*
-                    $accessLogsGrouped = $accessLogs->groupBy('path');
-                    Log::debug($accessLogsGrouped->all());
-                    $originals->each(function ($original, $path) use (
-                        $accessLogs
+                    $accessLogs->each(function ($accessLog, $originalId) use (
+                        $originals, $day, &$dataToInsert
                     ) {
-                        if($path === 'lukasz-socha.pl/wp-content/uploads/2014/03/slider2.jpg?il-height=75&il-avif=1') {
-                            //$this->info($path);
-                            if(!empty($accessLogsGrouped[$path])) {
-                                $accessLogsForPath = $accessLogsGrouped[$path];
-                                $this->info(count($accessLogsForPath));
-                            }
-                        }
+                        $now = Carbon::now();
+                        $data = [
+                            'day' => $day,
+                            'size'=> $accessLog['size'],
+                            'amount'=> $accessLog['amount'],
+                            'original_id' => $originalId,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                        $dataToInsert->push($data);
                     });
-                    */
+                    AccessLog::insert($dataToInsert->toArray());
                 }
             } catch (\Exception $e) {
                 $this->info($e->getMessage());
             }
         }
-
-        /*
-        $users = User::get();
-        foreach ($users as $user) {
-            $originals = Original::where('user_id', $user->id)->get(['id', 'path']);
-            foreach ($originals as $original) {
-                $filePath = $this->getFilePath($original->path);
-                $this->info($filePath);
-                foreach ($tables as $table) {
-                    $day = $this->getDateFromTableName($table);
-                    if ($this->getDaysFromNow($day) > 1) {g
-                        $entries = DB::table($table)->where('request', 'like', '%' . $filePath . '%')->get();
-                        $result = $this->getSumFromEntries($entries);
-
-                        if ($result['amount'] > 0) {
-                            $accessLog = new AccessLog();
-                            $accessLog->day = $day;
-                            $accessLog->size = $result['size'];
-                            $accessLog->amount = $result['amount'];
-                            $accessLog->original_id = $original->id;
-                            $accessLog->save();
-                        }
-                    }
-                }
-            }
-        }
-        */
-        /*
-         * It works ok
         foreach ($tables as $table) {
             try{
                 $day = $this->getDateFromTableName($table);
@@ -146,7 +112,6 @@ class SumLogs extends Command
                 Log::debug($e->getMessage());
             }
         }
-         */
         return 0;
     }
 
@@ -205,8 +170,8 @@ class SumLogs extends Command
 
     private function getDaysFromNow($day)
     {
-        $dateTable = new \DateTime($day);
-        $now = new \DateTime();
+        $dateTable = new Carbon($day);
+        $now = new Carbon();
         return $now->diff($dateTable)->format("%a");
     }
 }
