@@ -15,7 +15,7 @@ class CreateAccessLogsTable extends Migration
     {
         Schema::create('access_logs', function (Blueprint $table) {
             $table->id();
-            $table->string('size');
+            $table->bigInteger('size');
             $table->integer('amount');
             $table->foreignId('original_id')->constrained('originals');
             $table->date('day');
