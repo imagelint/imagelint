@@ -23,4 +23,8 @@ class Original extends Model {
             }
         }
     }
+    public function accessLogs()
+    {
+        return $this->hasMany(AccessLog::class);
+    }
 }
