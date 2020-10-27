@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class SumLogs extends Command
@@ -43,7 +44,7 @@ class SumLogs extends Command
      */
     public function handle()
     {
-        $tables = $this->geLogTables();
+        $tables = $this->getLogTables();
         $originals = collect([]);
         $originalEntries = Original::select('id', 'path')->get();
         foreach ($originalEntries as $entry) {
@@ -96,7 +97,10 @@ class SumLogs extends Command
                         ];
                         $dataToInsert->push($data);
                     });
-                    AccessLog::insert($dataToInsert->toArray());
+                    $chunks = $dataToInsert->chunk(1000);
+                    foreach($chunks as $chunk) {
+                        AccessLog::insert($chunk->toArray());
+                    }
                 }
             } catch (\Exception $e) {
                 $this->info($e->getMessage());
@@ -115,7 +119,7 @@ class SumLogs extends Command
         return 0;
     }
 
-    private function geLogTables()
+    private function getLogTables()
     {
         $logsTables = [];
         $allTables = array_map('reset', DB::select('SHOW TABLES'));
@@ -172,6 +176,6 @@ class SumLogs extends Command
     {
         $dateTable = new Carbon($day);
         $now = new Carbon();
-        return $now->diff($dateTable)->format("%a");
+        return $now->diffInDays($dateTable);
     }
 }
