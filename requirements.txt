@@ -1,0 +1,4 @@
+pandas
+fastai
+opencv-python
+flask

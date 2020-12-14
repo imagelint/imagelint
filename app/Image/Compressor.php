@@ -3,6 +3,7 @@
 namespace App\Image;
 
 use App\Models\Original;
+use GuzzleHttp\Client;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
@@ -115,6 +116,37 @@ class Compressor
 
         // TODO: Handle cropping & resizing via the image binaries
         $img = Image::make($this->out);
+
+        $client = new Client();
+        $response = $client->request('GET', 'http://localhost:8081?file=' . urlencode($this->in));
+
+        $focuspoint = json_decode($response->getBody(), true);
+        $focusX = $focuspoint[0];
+        $focusY = $focuspoint[1];
+
+        $imagesize = getimagesize($this->in);
+
+        $widthRatio = $imagesize[0] / $width;
+        $heightRatio = $imagesize[1] / $height;
+
+        $resizeWidth = $width;
+        $resizeHeight = $height;
+        if($widthRatio < $heightRatio) {
+            $resizeHeight = null;
+        } else {
+            $resizeWidth = null;
+        }
+
+        $img->resize($resizeWidth, $resizeHeight, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+
+        $img->crop($width, $height, intval(($focusX * $img->width()) - ($width * 0.5)), intval(($focusY * $img->height())  - ($width * 0.5)));
+        $img->circle(10, $focusX * $img->width(), $focusY * $img->height(), function ($draw) {
+            $draw->background('#0000ff');
+        });
+        /*
         if ($width && $height) {
             $img->fit($width, $height, function ($constraint) {
                 $constraint->upsize();
@@ -124,7 +156,7 @@ class Compressor
                 $constraint->aspectRatio();
                 $constraint->upsize();
             });
-        }
+        }*/
         $img->save();
     }
 

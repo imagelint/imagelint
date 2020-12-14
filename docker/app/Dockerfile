@@ -113,6 +113,10 @@ RUN apt-get update \
     && mkdir /run/php \
     && sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 20M/g" /etc/php/7.4/fpm/php.ini \
     && sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 20M/g" /etc/php/7.4/fpm/php.ini \
+### Install pip3
+    && apt-get install python3-pip \
+### Setup python environment
+    && pip3 install fastai flask
 ### Cleanup the docker image
     && apt-get clean \
     && apt-get purge -y --auto-remove wget apt-transport-https software-properties-common build-essential gcc zip debhelper dh-systemd dpkg-dev quilt lsb-release libssl-dev libpcre3-dev zlib1g-dev git \
