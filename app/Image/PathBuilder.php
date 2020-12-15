@@ -16,7 +16,7 @@ class PathBuilder {
     private $foreignParameters = null;
     private $parameters = null;
 
-    private static $imagelintParameters = ['imagelintwebp','il-width','il-height','il-dpr','il-lossy'];
+    private static $imagelintParameters = ['imagelintwebp','il-width','il-height','il-dpr','il-lossy','il-focusfinder'];
 
     public static function fromRequest($request, $parameters) {
         $expl = explode('/',$request);

@@ -30,6 +30,7 @@ class Compressor
             'lossy' => Arr::get($params, 'il-lossy', false),
             'webp' => Arr::get($params, 'imagelintwebp', false) === 'true',
             'avif' => Arr::get($params, 'il-avif', false),
+            'focusfinder' => !!Arr::get($params, 'il-focusfinder', false),
         ];
 
         $this->modifiers = $modifiers;
@@ -117,46 +118,50 @@ class Compressor
         // TODO: Handle cropping & resizing via the image binaries
         $img = Image::make($this->out);
 
-        $client = new Client();
-        $response = $client->request('GET', 'http://localhost:8081?file=' . urlencode($this->in));
+        if($this->modifiers['focusfinder']) {
+            $client = new Client();
+            $response = $client->request('GET', 'http://localhost:8081?file=' . urlencode($this->in));
 
-        $focuspoint = json_decode($response->getBody(), true);
-        $focusX = $focuspoint[0];
-        $focusY = $focuspoint[1];
+            $focuspoint = json_decode($response->getBody(), true);
+            $focusX = $focuspoint[0];
+            $focusY = $focuspoint[1];
 
-        $imagesize = getimagesize($this->in);
+            $imagesize = getimagesize($this->in);
 
-        $widthRatio = $imagesize[0] / $width;
-        $heightRatio = $imagesize[1] / $height;
+            $widthRatio = $imagesize[0] / $width;
+            $heightRatio = $imagesize[1] / $height;
 
-        $resizeWidth = $width;
-        $resizeHeight = $height;
-        if($widthRatio < $heightRatio) {
-            $resizeHeight = null;
+            $resizeWidth = $width;
+            $resizeHeight = $height;
+            if($widthRatio < $heightRatio) {
+                $resizeHeight = null;
+            } else {
+                $resizeWidth = null;
+            }
+
+            $img->resize($resizeWidth, $resizeHeight, function ($constraint) {
+                $constraint->aspectRatio();
+                // TODO: Add new param to disable upsizing and then handle this case properly when the requested image is larger than the source
+                // $constraint->upsize();
+            });
+            $maxX = $img->width() - $width;
+            $maxY = $img->height() - $height;
+            $startX = min(max(0, intval(($focusX * $img->width()) - ($width * 0.5))),$maxX);
+            $startY = min(max(0, intval(($focusY * $img->height())  - ($height * 0.5))),$maxY);
+            $img->crop($width, $height, $startX, $startY);
         } else {
-            $resizeWidth = null;
+            if ($width && $height) {
+                $img->fit($width, $height, function ($constraint) {
+                    $constraint->upsize();
+                });
+            } else {
+                $img->resize($width, $height, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+            }
         }
 
-        $img->resize($resizeWidth, $resizeHeight, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
-
-        $img->crop($width, $height, intval(($focusX * $img->width()) - ($width * 0.5)), intval(($focusY * $img->height())  - ($width * 0.5)));
-        $img->circle(10, $focusX * $img->width(), $focusY * $img->height(), function ($draw) {
-            $draw->background('#0000ff');
-        });
-        /*
-        if ($width && $height) {
-            $img->fit($width, $height, function ($constraint) {
-                $constraint->upsize();
-            });
-        } else {
-            $img->resize($width, $height, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            });
-        }*/
         $img->save();
     }
 
