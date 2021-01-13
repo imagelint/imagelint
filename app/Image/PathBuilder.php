@@ -16,17 +16,20 @@ class PathBuilder {
     private $foreignParameters = null;
     private $parameters = null;
 
-    private static $imagelintParameters = ['imagelintwebp','il-width','il-height','il-dpr','il-lossy'];
+    private static $imagelintParameters = ['imagelintwebp','imagelintavif','il-width','il-height','il-dpr','il-lossy'];
 
-    public static function fromRequest($request, $parameters) {
-        $expl = explode('/',$request);
+    public static function fromRequest($query, $parameters, $acceptsWebp = false, $acceptsAvif = false) {
+        $expl = explode('/',$query);
         $domain = $expl[0];
-        $url = $request;
+        $url = $query;
         $foreignParameters = [];
-        $imagelintParameters = [];
+        $imagelintParameters = [
+            'imagelintwebp' => $acceptsWebp,
+            'imagelintavif' => $acceptsAvif,
+        ];
         if($parameters) {
             $foreignParameters = self::parseForeignParameters($parameters);
-            $imagelintParameters = self::parseImagelintParameters($parameters);
+            $imagelintParameters = $imagelintParameters + self::parseImagelintParameters($parameters);
         }
 
         return new self($domain,$url,$foreignParameters,$imagelintParameters);

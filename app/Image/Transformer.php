@@ -7,7 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
 
-class Compressor
+class Transformer
 {
 
     private $modifiers;
@@ -17,7 +17,7 @@ class Compressor
     private $quality;
     private $originalSize;
 
-    public function compress(PathBuilder $path, Original $original)
+    public function transform(PathBuilder $path, Original $original)
     {
         $this->original = $original;
         $params = $path->getAllParams();
@@ -27,8 +27,6 @@ class Compressor
             'height' => Arr::get($params, 'il-height', null),
             'dpr' => Arr::get($params, 'il-dpr', 1),
             'lossy' => Arr::get($params, 'il-lossy', false),
-            'webp' => Arr::get($params, 'imagelintwebp', false),
-            'avif' => Arr::get($params, 'il-avif', false) && Arr::get($params, 'imagelintavif', false),
         ];
 
         $this->modifiers = $modifiers;
@@ -38,29 +36,20 @@ class Compressor
         $this->in = $path->getCachePath();
         $this->out = $path->getFinalPath();
 
+
+        if (File::exists($this->out)) {
+            return;
+        }
+
         if (!File::exists(dirname($this->out))) {
             @File::makeDirectory(dirname($this->out), 0755, true);
         }
 
-        $this->copyToIn();
+        $this->copyToOut();
 
         $filetype = $path->getOutFileType();
-        if ((bool)$this->modifiers['avif'] === true) {
-            $this->compressAvif();
-        } elseif ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
-            $this->compressWebp();
-        } else {
-            switch ($filetype) {
-                case 'image/jpeg':
-                    $this->compressJpg();
-                    break;
-                case 'image/png':
-                    $this->compressPng();
-                    break;
-                case 'image/svg+xml':
-                    $this->compressSVG();
-                    break;
-            }
+        if ($filetype !== 'image/svg+xml') {
+            $this->resize();
         }
 
         return true;
@@ -77,16 +66,47 @@ class Compressor
             'webp' => true,
         ];
         $this->modifiers = $modifiers;
-        $this->copyToIn();
+        $this->copyToOut();
         $this->compressWebp();
     }
 
-    private function copyToIn()
+    private function copyToOut()
     {
-        File::copy($this->out, $this->in);
+        File::copy($this->in, $this->out);
         $this->originalSize = filesize($this->out);
         // Filesize is cached, so make sure to clean up the cache
         clearstatcache();
+    }
+
+    private function resize()
+    {
+        $width = $this->modifiers['width'];
+        $height = $this->modifiers['height'];
+        if (!$width && !$height) {
+            return;
+        }
+
+        $dpr = floatval($this->modifiers['dpr']);
+        if ($width) {
+            $width *= $dpr;
+        }
+        if ($height) {
+            $height *= $dpr;
+        }
+
+        // TODO: Handle cropping & resizing via the image binaries
+        $img = Image::make($this->out);
+        if ($width && $height) {
+            $img->fit($width, $height, function ($constraint) {
+                $constraint->upsize();
+            });
+        } else {
+            $img->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+        }
+        $img->save();
     }
 
     public function compressWebp()

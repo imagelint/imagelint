@@ -2,12 +2,13 @@
 namespace App\Http\Controllers\Images;
 
 use App\Http\Controllers\Controller;
+use App\Image\Transformer;
+use App\Jobs\CompressImage;
 use App\Models\Domain;
 use App\Image\Compressor;
 use App\Image\Downloader;
 use App\Image\PathBuilder;
 use App\Models\Original;
-use Error;
 use Illuminate\Support\Facades\Request;
 
 class ConvertController extends Controller
@@ -20,10 +21,15 @@ class ConvertController extends Controller
      * @var Compressor
      */
     private $compressor;
+    /**
+     * @var Transformer
+     */
+    private $transformer;
 
-    public function __construct(Downloader $downloader, Compressor $compressor) {
+    public function __construct(Downloader $downloader, Compressor $compressor, Transformer $transformer) {
         $this->downloader = $downloader;
         $this->compressor = $compressor;
+        $this->transformer = $transformer;
     }
 
     public function image($query) {
@@ -31,7 +37,7 @@ class ConvertController extends Controller
             return app()->abort(404);
         }
         try {
-            $path = PathBuilder::fromRequest($query, Request::all());
+            $path = PathBuilder::fromRequest($query, Request::all(), Request::accepts('image/webp'), Request::accepts('image/avif'));
         } catch(\Exception $e) {
             report($e);
             return app()->abort(400);
@@ -60,11 +66,12 @@ class ConvertController extends Controller
                 $this->downloader->download($path);
             }
         }
-
-        $this->compressor->compress($path, $original);
+        if(!file_exists($path->getFinalPath())) {
+            $this->transformer->transform($path, $original);
+            CompressImage::dispatchAfterResponse($path, $original);
+        }
 
         header("Content-type: {$path->getOutFileType()}");
         readfile($path->getFinalPath());
-        exit;
     }
 }
