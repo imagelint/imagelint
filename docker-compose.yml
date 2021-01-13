@@ -20,12 +20,8 @@ services:
     depends_on:
       - redis
       - mysql
-    networks:
-     - imagelint
   redis:
     image: redis:6
-    networks:
-      - imagelint
   mysql:
     image: mysql:8
     ports:
@@ -38,11 +34,6 @@ services:
       MYSQL_PASSWORD: "secret"
     volumes:
      - imagelintmysql:/var/lib/mysql
-    networks:
-     - imagelint
-networks:
-  imagelint:
-    driver: "bridge"
 volumes:
   imagelintmysql:
     driver: "local"
