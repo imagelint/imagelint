@@ -2,6 +2,7 @@
 
 namespace App\Image;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use League\Flysystem\FileExistsException;
 
 /**
@@ -22,30 +23,15 @@ class Downloader
     public function download(PathBuilder $path) {
         $cachePath = $path->getCachePath();
 
-        $this->makeDirectory($cachePath);
         $remote = $this->buildRemoteURL($path->getDownloadUrl());
 
-        file_put_contents($cachePath, fopen($remote,'r'));
+        $cacheStorage = Storage::disk(config('imagelint.cache_disk', 'local'));
 
-        $size = filesize($cachePath);
+        $cacheStorage->put($cachePath, fopen($remote,'r'));
+
+        $size = $cacheStorage->size($cachePath);
 
         return $size;
-    }
-
-    /**
-     * Creates the directory where the original file gets stored
-     *
-     * @param $path
-     */
-    private function makeDirectory($path) {
-        $path = dirname($path);
-        if(!File::exists($path)) {
-            try {
-                @File::makeDirectory($path,0755,true);
-            } catch(\Exception $e) {
-                // Due to multiple requests at once it might happen that the directoy already exists
-            }
-        }
     }
 
     public function buildRemoteURL($url) {

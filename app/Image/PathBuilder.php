@@ -2,10 +2,12 @@
 
 namespace App\Image;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Class PathBuilder
- * Builds paths based on image requests
+ * Builds file paths based on image requests
  *
  * @package App\Image
  */
@@ -42,13 +44,6 @@ class PathBuilder {
         $this->parameters = $parameters;
     }
 
-    public function getOriginalStoragePath() {
-        if($this->foreignParameters) {
-            return $this->stringifyParams($this->foreignParameters) . '/' . $this->url;
-        }
-        return $this->url;
-    }
-
     public function getDomain() {
         return $this->domain;
     }
@@ -83,10 +78,20 @@ class PathBuilder {
      * @return mixed
      */
     public function getBasePath() {
+        $params = '';
         if ($this->foreignParameters) {
             $params = $this->stringifyParams($this->foreignParameters) . '/';
-        } else {
-            $params = '';
+        }
+        return $this->sanitize($params . $this->url);
+    }
+
+    public function getSpecificPath() {
+        $params = '';
+        if($this->getImagelintParameters()) {
+            $params = $this->stringifyParams($this->getImagelintParameters()) . '/';
+        }
+        if ($this->foreignParameters) {
+            $params .= $this->stringifyParams($this->foreignParameters) . '/';
         }
         return $this->sanitize($params . $this->url);
     }
@@ -101,7 +106,33 @@ class PathBuilder {
         if (substr($basePath,0,1) !== '/') {
             $basePath = '/' . $basePath;
         }
-        return storage_path('app/public/cache' . $basePath);
+        return 'cache' . $basePath;
+    }
+
+    /**
+     * Returns the path where we let the image binaries work on the images
+     *
+     * @return string
+     */
+    public function getCompressPath() {
+        $path = $this->getSpecificPath();
+        if (!Str::startsWith($path, '/')) {
+            $path = '/' . $path;
+        }
+        return 'compress' . $path;
+    }
+
+    /**
+     * Returns the path where we let the image binaries work on the images
+     *
+     * @return string
+     */
+    public function getTransformPath() {
+        $basePath = $this->getBasePath();
+        if (substr($basePath,0,1) !== '/') {
+            $basePath = '/' . $basePath;
+        }
+        return 'transform' . $basePath;
     }
 
     public function getFinalPath() {
@@ -114,20 +145,37 @@ class PathBuilder {
         if(isset($params['imagelintwebp'])) {
             unset($params['imagelintwebp']);
         }
-        return storage_path('app/public/data/' . $this->stringifyParams($params) . ($webp ? '/webp' : '') . $query);
+        return 'data/' . $this->stringifyParams($params) . ($webp ? '/webp' : '') . $query;
     }
 
     public function getOutFileType() {
+        // TODO: Figure out a way how to get the mime type from the file which might be in a remote storage
+        return 'image/webp';
         $path = $this->getFinalPath();
-        $is = getimagesize($path);
-        if(!$is) {
+        $imageInfo = getimagesize($path);
+        if(!$imageInfo) {
             if(pathinfo($path)['extension'] === 'svg') {
                 return 'image/svg+xml';
             } else {
                 return 'image/webp';
             }
         } else {
-            return $is['mime'];
+            return $imageInfo['mime'];
+        }
+    }
+
+    public function getInFileType() {
+        $tmpStorage = Storage::disk(config('imagelint.tmp_disk', 'local'));
+        $path = $tmpStorage->path($this->getTransformPath());
+        $imageInfo = getimagesize($path);
+        if(!$imageInfo) {
+            if(pathinfo($path)['extension'] === 'svg') {
+                return 'image/svg+xml';
+            } else {
+                return 'image/webp';
+            }
+        } else {
+            return $imageInfo['mime'];
         }
     }
 

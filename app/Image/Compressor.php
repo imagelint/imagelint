@@ -5,6 +5,7 @@ namespace App\Image;
 use App\Models\Original;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
 class Compressor
@@ -35,17 +36,19 @@ class Compressor
         if ($quality = Arr::get($params, 'il-quality', null)) {
             $this->quality = (int)$quality;
         }
-        $this->in = $path->getCachePath();
-        $this->out = $path->getFinalPath();
 
-        if (!File::exists(dirname($this->out))) {
-            @File::makeDirectory(dirname($this->out), 0755, true);
-        }
+        $tmpStorage = Storage::disk(config('imagelint.tmp_disk', 'local'));
+        $compressedStorage = Storage::disk(config('imagelint.compressed_disk', 'local'));
 
-        $this->copyToIn();
+        $this->in = $tmpStorage->path($path->getTransformPath());
+        $this->out = $compressedStorage->path($path->getCompressPath());
 
-        $filetype = $path->getOutFileType();
-        if ((bool)$this->modifiers['avif'] === true) {
+        $this->makeDirectory($this->out);
+
+        $this->copyToOut();
+
+        $filetype = $path->getInFileType();
+        if ((bool)$this->modifiers['avif'] === true && $filetype !== 'image/svg+xml') {
             $this->compressAvif();
         } elseif ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
             $this->compressWebp();
@@ -84,6 +87,15 @@ class Compressor
     private function copyToIn()
     {
         File::copy($this->out, $this->in);
+        $this->originalSize = filesize($this->out);
+        // Filesize is cached, so make sure to clean up the cache
+        clearstatcache();
+    }
+
+    private function copyToOut()
+    {
+        File::copy($this->in, $this->out);
+        chmod($this->out, 0777);
         $this->originalSize = filesize($this->out);
         // Filesize is cached, so make sure to clean up the cache
         clearstatcache();
@@ -170,8 +182,22 @@ class Compressor
 
     private function restoreInToOut()
     {
-        unlink($this->out);
         $this->copyToOut();
-        $this->resize();
+    }
+
+    /**
+     * Creates the directory where the original file gets stored
+     *
+     * @param $path
+     */
+    private function makeDirectory($path) {
+        $path = dirname($path);
+        if(!File::exists($path)) {
+            try {
+                @File::makeDirectory($path,0755,true);
+            } catch(\Exception $e) {
+                // Due to multiple requests at once it might happen that the directoy already exists
+            }
+        }
     }
 }
