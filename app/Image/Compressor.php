@@ -5,55 +5,48 @@ namespace App\Image;
 use App\Models\Original;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
 class Compressor
 {
-
     private $modifiers;
     private $in;
     private $out;
     private $original;
+    private $imageRequest;
     private $quality;
     private $originalSize;
 
-    public function compress(PathBuilder $path, Original $original)
+    public function compress(ImageRequest $imageRequest, Original $original)
     {
         $this->original = $original;
-        $params = $path->getAllParams();
+        $this->imageRequest = $imageRequest;
+        $params = $this->imageRequest->getAllParams();
 
         $modifiers = [
             'width' => Arr::get($params, 'il-width', null),
             'height' => Arr::get($params, 'il-height', null),
             'dpr' => Arr::get($params, 'il-dpr', 1),
             'lossy' => Arr::get($params, 'il-lossy', false),
-            'webp' => Arr::get($params, 'imagelintwebp', false) === 'true',
-            'avif' => Arr::get($params, 'il-avif', false),
+            'webp' => Arr::get($params, 'imagelintwebp', false),
+            'avif' => Arr::get($params, 'il-avif', false) && Arr::get($params, 'imagelintavif', false),
         ];
 
         $this->modifiers = $modifiers;
         if ($quality = Arr::get($params, 'il-quality', null)) {
             $this->quality = (int)$quality;
         }
-        $this->in = $path->getCachePath();
-        $this->out = $path->getFinalPath();
 
+        $this->in = $this->imageRequest->getTmpDisk()->path($this->imageRequest->getTransformPath());
+        $this->out = $this->imageRequest->getTmpDisk()->path($this->imageRequest->getCompressPath());
 
-        if (File::exists($this->out)) {
-            return;
-        }
-
-        if (!File::exists(dirname($this->out))) {
-            @File::makeDirectory(dirname($this->out), 0755, true);
-        }
+        $this->makeDirectory($this->out);
 
         $this->copyToOut();
 
-        $filetype = $path->getOutFileType();
-        if ($filetype !== 'image/svg+xml') {
-            $this->resize();
-        }
-        if ((bool)$this->modifiers['avif'] === true) {
+        $filetype = $this->imageRequest->getInFileType();
+        if ((bool)$this->modifiers['avif'] === true && $filetype !== 'image/svg+xml') {
             $this->compressAvif();
         } elseif ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
             $this->compressWebp();
@@ -71,7 +64,8 @@ class Compressor
             }
         }
 
-        return true;
+        $compressedStream = $this->imageRequest->getTmpDisk()->readStream($this->imageRequest->getCompressPath());
+        return $this->imageRequest->getOutputDisk()->put($this->imageRequest->getOutputPath(), $compressedStream);
     }
 
     public function compressOnTheFly($in, $out, $quality)
@@ -85,47 +79,15 @@ class Compressor
             'webp' => true,
         ];
         $this->modifiers = $modifiers;
-        $this->copyToOut();
         $this->compressWebp();
     }
 
     private function copyToOut()
     {
-        File::copy($this->in, $this->out);
+        $this->imageRequest->getTmpDisk()->copy($this->imageRequest->getTransformPath(), $this->imageRequest->getCompressPath());
         $this->originalSize = filesize($this->out);
         // Filesize is cached, so make sure to clean up the cache
-        clearstatcache();
-    }
-
-    private function resize()
-    {
-        $width = $this->modifiers['width'];
-        $height = $this->modifiers['height'];
-        if (!$width && !$height) {
-            return;
-        }
-
-        $dpr = floatval($this->modifiers['dpr']);
-        if ($width) {
-            $width *= $dpr;
-        }
-        if ($height) {
-            $height *= $dpr;
-        }
-
-        // TODO: Handle cropping & resizing via the image binaries
-        $img = Image::make($this->out);
-        if ($width && $height) {
-            $img->fit($width, $height, function ($constraint) {
-                $constraint->upsize();
-            });
-        } else {
-            $img->resize($width, $height, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            });
-        }
-        $img->save();
+        clearstatcache(true, $this->out);
     }
 
     public function compressWebp()
@@ -147,7 +109,7 @@ class Compressor
         exec($command, $output);
 
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -156,7 +118,7 @@ class Compressor
         exec(base_path('bin/pngcrush') . ' -blacken -bail -rem alla -reduce -ow ' . escapeshellarg($this->out));
         exec(base_path('bin/zopflipng') . ' --lossy_transparent -y ' . escapeshellarg($this->out) . ' ' . escapeshellarg($this->out));
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -164,7 +126,7 @@ class Compressor
     {
         exec('svgo --multipass ' . escapeshellarg($this->out));
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -172,7 +134,7 @@ class Compressor
     {
         exec(base_path('bin/jpegoptim') . ' -s -o --all-normal -m' . $this->getQuality() . ' ' . escapeshellarg($this->out) . ' --dest=' . escapeshellarg(dirname($this->out)));
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -188,9 +150,11 @@ class Compressor
         }
         $dest = str_replace('.'.File::extension($this->out), '.avif', $this->out);
         exec(base_path('bin/avif') . ' -e ' . escapeshellarg($this->out) . ' -o ' . escapeshellarg($dest) . ' -q ' . $quality);
-        File::move($dest, $this->out);
-        if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+
+        if ($this->originalSize <= filesize($dest)) {
+            $this->copyToOut();
+        } else {
+            File::move($dest, $this->out);
         }
     }
 
@@ -207,10 +171,19 @@ class Compressor
         }
     }
 
-    private function restoreInToOut()
-    {
-        unlink($this->out);
-        $this->copyToOut();
-        $this->resize();
+    /**
+     * Creates the directory where the original file gets stored
+     *
+     * @param $path
+     */
+    private function makeDirectory($path) {
+        $path = dirname($path);
+        if(!File::exists($path)) {
+            try {
+                @File::makeDirectory($path,0755,true);
+            } catch(\Exception $e) {
+                // Due to multiple requests at once it might happen that the directoy already exists
+            }
+        }
     }
 }
