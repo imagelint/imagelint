@@ -17,10 +17,10 @@ class Transformer
     private $original;
     private $quality;
 
-    public function transform(PathBuilder $path, Original $original)
+    public function transform(ImageRequest $imageRequest, Original $original)
     {
         $this->original = $original;
-        $params = $path->getAllParams();
+        $params = $imageRequest->getAllParams();
 
         $modifiers = [
             'width' => Arr::get($params, 'il-width', null),
@@ -34,17 +34,14 @@ class Transformer
             $this->quality = (int)$quality;
         }
 
-        $cacheStorage = Storage::disk(config('imagelint.cache_disk', 'local'));
-        $tmpStorage = Storage::disk(config('imagelint.tmp_disk', 'local'));
+        $this->in = $imageRequest->getTmpDisk()->path($imageRequest->getInputPath());
+        $this->out = $imageRequest->getTmpDisk()->path($imageRequest->getTransformPath());
 
-        $this->in = $cacheStorage->path($path->getCachePath());
-        $this->out = $tmpStorage->path($path->getTransformPath());
+        $this->makeDirectory($imageRequest);
 
-        $this->makeDirectory($this->out);
+        $this->copyToOut($imageRequest);
 
-        $this->copyToOut();
-
-        $filetype = $path->getOutFileType();
+        $filetype = $imageRequest->getOutFileType();
         if ($filetype !== 'image/svg+xml') {
             $this->resize();
         }
@@ -52,9 +49,9 @@ class Transformer
         return true;
     }
 
-    private function copyToOut()
+    private function copyToOut(ImageRequest $imageRequest)
     {
-        File::copy($this->in, $this->out);
+        $imageRequest->getTmpDisk()->copy($imageRequest->getInputPath(), $imageRequest->getTransformPath());
     }
 
     private function resize()
@@ -92,14 +89,7 @@ class Transformer
      *
      * @param $path
      */
-    private function makeDirectory($path) {
-        $path = dirname($path);
-        if(!File::exists($path)) {
-            try {
-                @File::makeDirectory($path,0755,true);
-            } catch(\Exception $e) {
-                // Due to multiple requests at once it might happen that the directoy already exists
-            }
-        }
+    private function makeDirectory(ImageRequest $imageRequest) {
+        $imageRequest->getTmpDisk()->makeDirectory(basename($imageRequest->getTransformPath()));
     }
 }

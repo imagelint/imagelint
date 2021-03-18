@@ -1,9 +1,7 @@
 <?php
 
 namespace App\Image;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use League\Flysystem\FileExistsException;
+use GuzzleHttp\Client;
 
 /**
  * Downloads the original image
@@ -14,30 +12,26 @@ class Downloader
 {
 
     /**
-     * Downloads the file and returns the storage path and size
+     * Downloads the file and returns it's size
      *
-     * @param $path
+     * @param ImageRequest $imageRequest
      *
      * @return int The size of the original file
      */
-    public function download(PathBuilder $path) {
-        $cachePath = $path->getCachePath();
+    public function download(ImageRequest $imageRequest) : int {
+        $cachePath = $imageRequest->getInputPath();
 
-        $remote = $this->buildRemoteURL($path->getDownloadUrl());
+        $remote = $this->buildRemoteURL($imageRequest->getDownloadUrl());
 
-        $cacheStorage = Storage::disk(config('imagelint.cache_disk', 'local'));
+        $imageRequest->getTmpDisk()->put($cachePath, fopen($remote,'r'));
 
-        $cacheStorage->put($cachePath, fopen($remote,'r'));
-
-        $size = $cacheStorage->size($cachePath);
-
-        return $size;
+        return $imageRequest->getTmpDisk()->size($cachePath);
     }
 
     public function buildRemoteURL($url) {
         // Try to request the file via https, if that doesn't work use http
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = new Client();
             $client->request('HEAD','https://' . $url);
             $url = 'https://' . $url;
         } catch(\Exception $e) {

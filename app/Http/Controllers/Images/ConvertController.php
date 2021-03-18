@@ -8,10 +8,9 @@ use App\Jobs\CompressImage;
 use App\Models\Domain;
 use App\Image\Compressor;
 use App\Image\Downloader;
-use App\Image\PathBuilder;
+use App\Image\ImageRequest;
 use App\Models\Original;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ConvertController extends Controller
 {
@@ -41,44 +40,43 @@ class ConvertController extends Controller
             return app()->abort(404);
         }
         try {
-            $path = PathBuilder::fromRequest($query, Request::all(), Request::accepts('image/webp'), Request::accepts('image/avif'));
+            $imageRequest = ImageRequest::fromRequest($query, Request::all(), Request::accepts('image/webp'), Request::accepts('image/avif'));
         } catch (\Exception $e) {
             report($e);
             return app()->abort(400);
         }
 
-        $domain = $path->getSecondLevelDomain();
+        $domain = $imageRequest->getSecondLevelDomain();
         $domain = Domain::where('domain', $domain)->first();
 
         if (!$domain) {
             return app()->abort(403);
         }
 
-        $basePath = $path->getBasePath();
+        $basePath = $imageRequest->getBasePath();
 
         $original = Original::where('path', $basePath)->first();
         if (!$original) {
-            $originalSize = $this->downloader->download($path);
+            $originalSize = $this->downloader->download($imageRequest);
             $original = new Original();
             $original->path = $basePath;
             $original->domain_id = $domain->id;
             $original->size = $originalSize;
             $original->user_id = 1;
             $original->save();
-        } else {
-            if (!Storage::disk(config('imagelint.cache_disk', 'local'))->exists($path->getCachePath())) {
-                $this->downloader->download($path);
-            }
         }
-        $compressedStorage = Storage::disk(config('imagelint.compressed_disk', 'local'));
-        $isCompressed = $compressedStorage->exists($path->getCompressPath());
-        if (!$isCompressed) {
-            $this->transformer->transform($path, $original);
-            CompressImage::dispatchAfterResponse($path, $original);
-            $tmpStorage = Storage::disk(config('imagelint.tmp_disk', 'local'));
-            $readStream = $tmpStorage->readStream($path->getTransformPath());
+
+        $isAlreadyCompressed = $imageRequest->getOutputDisk()->exists($imageRequest->getOutputPath());
+        if (!$isAlreadyCompressed) {
+            if (!$imageRequest->getTmpDisk()->exists($imageRequest->getInputPath())) {
+                $this->downloader->download($imageRequest);
+            }
+            $this->transformer->transform($imageRequest, $original);
+
+            CompressImage::dispatchAfterResponse($imageRequest, $original);
+            $readStream = $imageRequest->getTmpDisk()->readStream($imageRequest->getTransformPath());
         } else {
-            $readStream = $compressedStorage->readStream($path->getCompressPath());
+            $readStream = $imageRequest->getOutputDisk()->readStream($imageRequest->getOutputPath());
         }
 
         // Finish any potential previous output. There should be none, but if there is, we need this in order for the streaming to work
@@ -92,8 +90,8 @@ class ConvertController extends Controller
             },
             200,
             [
-                'Content-Type' => $path->getOutFileType(),
-                'Cache-Control' => $isCompressed ? 'max-age=3600, public' : 'private',
+                'Content-Type' => $imageRequest->getOutFileType(),
+                'Cache-Control' => $isAlreadyCompressed ? 'max-age=3600, public' : 'private',
             ]
         );
     }

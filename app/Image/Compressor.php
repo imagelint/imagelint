@@ -10,18 +10,19 @@ use Intervention\Image\Facades\Image;
 
 class Compressor
 {
-
     private $modifiers;
     private $in;
     private $out;
     private $original;
+    private $imageRequest;
     private $quality;
     private $originalSize;
 
-    public function compress(PathBuilder $path, Original $original)
+    public function compress(ImageRequest $imageRequest, Original $original)
     {
         $this->original = $original;
-        $params = $path->getAllParams();
+        $this->imageRequest = $imageRequest;
+        $params = $this->imageRequest->getAllParams();
 
         $modifiers = [
             'width' => Arr::get($params, 'il-width', null),
@@ -37,17 +38,14 @@ class Compressor
             $this->quality = (int)$quality;
         }
 
-        $tmpStorage = Storage::disk(config('imagelint.tmp_disk', 'local'));
-        $compressedStorage = Storage::disk(config('imagelint.compressed_disk', 'local'));
-
-        $this->in = $tmpStorage->path($path->getTransformPath());
-        $this->out = $compressedStorage->path($path->getCompressPath());
+        $this->in = $this->imageRequest->getTmpDisk()->path($this->imageRequest->getTransformPath());
+        $this->out = $this->imageRequest->getTmpDisk()->path($this->imageRequest->getCompressPath());
 
         $this->makeDirectory($this->out);
 
         $this->copyToOut();
 
-        $filetype = $path->getInFileType();
+        $filetype = $this->imageRequest->getInFileType();
         if ((bool)$this->modifiers['avif'] === true && $filetype !== 'image/svg+xml') {
             $this->compressAvif();
         } elseif ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
@@ -66,7 +64,8 @@ class Compressor
             }
         }
 
-        return true;
+        $compressedStream = $this->imageRequest->getTmpDisk()->readStream($this->imageRequest->getCompressPath());
+        return $this->imageRequest->getOutputDisk()->put($this->imageRequest->getOutputPath(), $compressedStream);
     }
 
     public function compressOnTheFly($in, $out, $quality)
@@ -80,25 +79,15 @@ class Compressor
             'webp' => true,
         ];
         $this->modifiers = $modifiers;
-        $this->copyToIn();
         $this->compressWebp();
-    }
-
-    private function copyToIn()
-    {
-        File::copy($this->out, $this->in);
-        $this->originalSize = filesize($this->out);
-        // Filesize is cached, so make sure to clean up the cache
-        clearstatcache();
     }
 
     private function copyToOut()
     {
-        File::copy($this->in, $this->out);
-        chmod($this->out, 0777);
+        $this->imageRequest->getTmpDisk()->copy($this->imageRequest->getTransformPath(), $this->imageRequest->getCompressPath());
         $this->originalSize = filesize($this->out);
         // Filesize is cached, so make sure to clean up the cache
-        clearstatcache();
+        clearstatcache(true, $this->out);
     }
 
     public function compressWebp()
@@ -120,7 +109,7 @@ class Compressor
         exec($command, $output);
 
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -129,7 +118,7 @@ class Compressor
         exec(base_path('bin/pngcrush') . ' -blacken -bail -rem alla -reduce -ow ' . escapeshellarg($this->out));
         exec(base_path('bin/zopflipng') . ' --lossy_transparent -y ' . escapeshellarg($this->out) . ' ' . escapeshellarg($this->out));
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -137,7 +126,7 @@ class Compressor
     {
         exec('svgo --multipass ' . escapeshellarg($this->out));
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -145,7 +134,7 @@ class Compressor
     {
         exec(base_path('bin/jpegoptim') . ' -s -o --all-normal -m' . $this->getQuality() . ' ' . escapeshellarg($this->out) . ' --dest=' . escapeshellarg(dirname($this->out)));
         if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+            $this->copyToOut();
         }
     }
 
@@ -161,9 +150,11 @@ class Compressor
         }
         $dest = str_replace('.'.File::extension($this->out), '.avif', $this->out);
         exec(base_path('bin/avif') . ' -e ' . escapeshellarg($this->out) . ' -o ' . escapeshellarg($dest) . ' -q ' . $quality);
-        File::move($dest, $this->out);
-        if ($this->originalSize <= filesize($this->out)) {
-            $this->restoreInToOut();
+
+        if ($this->originalSize <= filesize($dest)) {
+            $this->copyToOut();
+        } else {
+            File::move($dest, $this->out);
         }
     }
 
@@ -178,11 +169,6 @@ class Compressor
             }
             return $quality;
         }
-    }
-
-    private function restoreInToOut()
-    {
-        $this->copyToOut();
     }
 
     /**

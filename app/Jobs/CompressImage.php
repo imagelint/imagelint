@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Image\Compressor;
-use App\Image\PathBuilder;
+use App\Image\ImageRequest;
 use App\Models\Original;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,9 +16,9 @@ class CompressImage implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * @var PathBuilder
+     * @var ImageRequest
      */
-    private $path;
+    private $imageRequest;
     /**
      * @var Original
      */
@@ -27,24 +27,23 @@ class CompressImage implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param PathBuilder $path
+     * @param ImageRequest $imageRequest
      * @param Original $original
      */
-    public function __construct(PathBuilder $path, Original $original)
+    public function __construct(ImageRequest $imageRequest, Original $original)
     {
-        $this->path = $path;
+        $this->imageRequest = $imageRequest;
         $this->original = $original;
     }
 
     /**
      * Execute the job.
      *
+     * @param Compressor $compressor
      * @return void
      */
-    public function handle()
+    public function handle(Compressor $compressor)
     {
-        /** @var Compressor $compressor */
-        $compressor = app(Compressor::class);
-        $compressor->compress($this->path, $this->original);
+        $compressor->compress($this->imageRequest, $this->original);
     }
 }
