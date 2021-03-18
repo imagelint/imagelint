@@ -18,7 +18,7 @@
 The following [unsplash image](https://unsplash.com/photos/tGG_Y-lew_Y) was resized to a width of 500px and then optimized with imagelint.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/imagelint/imagelint/master/.github/img/github-graphic-shadow.jpg" alt="Comparing two images, one is optimized with imagelint and is only 13% of the size of the unoptimized one" width="1100" height="782">
+<img src="https://raw.githubusercontent.com/imagelint/imagelint/master/.github/img/github-graphic-shadow.jpg" alt="Comparing two images, one is optimized with imagelint and is only 13% of the size of the unoptimized one" width="838">
 </p>
 
 ## Installation instructions
