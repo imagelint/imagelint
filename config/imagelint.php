@@ -1,7 +1,22 @@
 <?php
 
 return [
-    // This must be a local filesystem disk
+    /*
+    |--------------------------------------------------------------------------
+    | Disks
+    |--------------------------------------------------------------------------
+    |
+    | These disks are used to store images. They should be set to one of the
+    | disks that are defined in /config/filesystems.php
+    |
+    */
+
+    // This disk is used to store uploaded images
+    // ***This must be a disk which returns a url which is publicly accessible***
+    'upload_disk' => env('IMAGELINT_UPLOAD_DISK', 'public'),
+
+    // It's used as temporary storage for transforming and compressing the images
+    // ***This must be a local filesystem disk***
     'tmp_disk' => env('IMAGELINT_TMP_DISK', 'local'),
 
     // This can be any disk

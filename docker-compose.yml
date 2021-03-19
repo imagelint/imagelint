@@ -2,7 +2,7 @@ version: '2'
 services:
   app:
     build:
-      context: ./docker/app
+      context: .
       dockerfile: Dockerfile
     image: imagelint/app
     ports:
