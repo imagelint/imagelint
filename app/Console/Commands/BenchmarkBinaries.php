@@ -75,7 +75,7 @@ class BenchmarkBinaries extends Command
     {
         $dest = str_replace('.' . File::extension($destination), '.webp', $destination);
         $params = ' -m 6 -af -mt';
-        $command = 'time -o compress-webp.txt -f "%M" bin/cwebp ' . escapeshellarg($file)
+        $command = '/usr/bin/time -o compress-webp.txt -f "%M" bin/cwebp ' . escapeshellarg($file)
             . ' ' . $params . ' -o ' .
             escapeshellarg($dest);
         $output=null;
@@ -87,7 +87,7 @@ class BenchmarkBinaries extends Command
 
     public function compressJpg($file, $destination)
     {
-        exec('time -o compress-jpg.txt -f "%M" bin/jpegoptim -s --all-normal ' . escapeshellarg($file) . ' --dest=' . escapeshellarg(dirname($destination)));
+        exec('/usr/bin/time -o compress-jpg.txt -f "%M" bin/jpegoptim -s --all-normal ' . escapeshellarg($file) . ' --dest=' . escapeshellarg(dirname($destination)));
         $file = File::get('compress-jpg.txt');
         File::delete('compress-jpg.txt');
         return (int)$file;
@@ -96,7 +96,7 @@ class BenchmarkBinaries extends Command
     public function compressAvif($file, $destination)
     {
         $dest = str_replace('.' . File::extension($destination), '.avif', $destination);
-        exec('time  -o compress-avif.txt -f "%M" bin/avif -e ' . escapeshellarg($file) . ' -o ' . escapeshellarg($dest));
+        exec('/usr/bin/time  -o compress-avif.txt -f "%M" bin/avif -e ' . escapeshellarg($file) . ' -o ' . escapeshellarg($dest));
         $file = File::get('compress-avif.txt');
         File::delete('compress-avif.txt');
         return (int)$file;

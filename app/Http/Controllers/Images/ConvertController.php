@@ -69,17 +69,27 @@ class ConvertController extends Controller
         $isAlreadyCompressed = $imageRequest->getOutputDisk()->exists($imageRequest->getOutputPath());
         if (!$isAlreadyCompressed) {
             $this->transformer->transform($imageRequest, $original);
+            if ($queueConnection = config('imagelint.queue_connection', '')) {
+                CompressImage::dispatch($imageRequest, $original)->onConnection($queueConnection);
+            } else {
+                CompressImage::dispatchAfterResponse($imageRequest, $original);
+            }
+        }
 
-            CompressImage::dispatchAfterResponse($imageRequest, $original);
+        // Check which file we want to deliver
+        $isAlreadyCompressed = $imageRequest->getOutputDisk()->exists($imageRequest->getOutputPath());
+        if(!$isAlreadyCompressed) {
             $readStream = $imageRequest->getTmpDisk()->readStream($imageRequest->getTransformPath());
         } else {
             $readStream = $imageRequest->getOutputDisk()->readStream($imageRequest->getOutputPath());
         }
 
-        // Finish any potential previous output. There should be none, but if there is, we need this in order for the streaming to work
+        // Finish any potential previous output.
+        // There should be none, but if there is, we need this in order for the streaming to work.
         if (ob_get_level()) {
             ob_end_clean();
         }
+
 
         return response()->stream(
             function () use ($readStream) {

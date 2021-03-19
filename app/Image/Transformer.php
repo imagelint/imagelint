@@ -62,7 +62,7 @@ class Transformer
         if (!$imageRequest->getTmpDisk()->exists($imageRequest->getInputPath())) {
             $this->downloader->download($imageRequest);
         }
-        $imageRequest->getTmpDisk()->copy($imageRequest->getInputPath(), $imageRequest->getTransformPath());
+        $imageRequest->getTmpDisk()->put($imageRequest->getTransformPath(), $imageRequest->getTmpDisk()->readStream($imageRequest->getInputPath()));
     }
 
     private function resize()

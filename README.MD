@@ -24,3 +24,14 @@ The following [unsplash image](https://unsplash.com/photos/tGG_Y-lew_Y) was resi
 ## Installation instructions
 
 Work in progress. Check back soon :)
+
+## Resource usage
+
+Encoding images takes quite a bit of cpu power and memory. There are significant differences between the different file formats.
+
+To get an impression of how much resources are needed, the following table shows an overview how much resources it takes to encode an image which is 1920x970px in size.
+The encoding was executed on an intel 10 core processor (i9-7900X @ 3.30GHz).
+
+| Jpg: time 	| Jpg: memory 	| webp: time 	| webp: memory 	| avif: time 	| avif: memory 	|
+|-----------	|-------------	|------------	|--------------	|------------	|--------------	|
+| 66 ms     	| 8.2 MB      	| 1315 ms     	| 13.57 MB     	| 5277 ms    	| 2696 MB      	|
