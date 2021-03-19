@@ -10,6 +10,14 @@ use Intervention\Image\Facades\Image;
 
 class Transformer
 {
+    /**
+     * @var Downloader
+     */
+    private $downloader;
+
+    public function __construct(Downloader $downloader) {
+        $this->downloader = $downloader;
+    }
 
     private $modifiers;
     private $in;
@@ -51,6 +59,9 @@ class Transformer
 
     private function copyToOut(ImageRequest $imageRequest)
     {
+        if (!$imageRequest->getTmpDisk()->exists($imageRequest->getInputPath())) {
+            $this->downloader->download($imageRequest);
+        }
         $imageRequest->getTmpDisk()->copy($imageRequest->getInputPath(), $imageRequest->getTransformPath());
     }
 

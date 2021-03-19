@@ -68,9 +68,6 @@ class ConvertController extends Controller
 
         $isAlreadyCompressed = $imageRequest->getOutputDisk()->exists($imageRequest->getOutputPath());
         if (!$isAlreadyCompressed) {
-            if (!$imageRequest->getTmpDisk()->exists($imageRequest->getInputPath())) {
-                $this->downloader->download($imageRequest);
-            }
             $this->transformer->transform($imageRequest, $original);
 
             CompressImage::dispatchAfterResponse($imageRequest, $original);

@@ -10,10 +10,20 @@ use Intervention\Image\Facades\Image;
 
 class Compressor
 {
+    /**
+     * @var Transformer
+     */
+    private $transformer;
+
+    public function __construct(Transformer $transformer) {
+        $this->transformer = $transformer;
+    }
+
     private $modifiers;
     private $in;
     private $out;
     private $original;
+    /** @var ImageRequest */
     private $imageRequest;
     private $quality;
     private $originalSize;
@@ -84,6 +94,9 @@ class Compressor
 
     private function copyToOut()
     {
+        if (!$this->imageRequest->getTmpDisk()->exists($this->imageRequest->getTransformPath())) {
+            $this->transformer->transform($this->imageRequest, $this->original);
+        }
         $this->imageRequest->getTmpDisk()->copy($this->imageRequest->getTransformPath(), $this->imageRequest->getCompressPath());
         $this->originalSize = filesize($this->out);
         // Filesize is cached, so make sure to clean up the cache
