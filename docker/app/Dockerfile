@@ -119,18 +119,18 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*  /usr/share/doc/* /usr/share/man/*
 
 ### Copy the nginx/php config to their respective folders
-COPY h5bp /opt/nginx/conf/h5bp
-COPY gzip.conf /opt/nginx/conf/gzip.conf
-COPY fastcgi-php.conf /opt/nginx/conf/fastcgi-php.conf
-COPY nginx.conf /opt/nginx/conf/nginx.conf
-COPY php-fpm.conf /etc/php/7.4/fpm/php-fpm.conf
+COPY docker/app/h5bp /opt/nginx/conf/h5bp
+COPY docker/app/gzip.conf /opt/nginx/conf/gzip.conf
+COPY docker/app/fastcgi-php.conf /opt/nginx/conf/fastcgi-php.conf
+COPY docker/app/nginx.conf /opt/nginx/conf/nginx.conf
+COPY docker/app/php-fpm.conf /etc/php/7.4/fpm/php-fpm.conf
 
 ### Copy the syslog-ng config
-COPY syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+COPY docker/app/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
 
 ### Copy and setup the container entrypoint
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY start-container /usr/local/bin/start-container
+COPY docker/app/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/app/start-container /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container
 
 EXPOSE 80
