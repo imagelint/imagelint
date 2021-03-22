@@ -10,6 +10,4 @@ jobs:
     - uses: php-actions/composer@v5
       with:
         php_version: 7.4
-    - uses: php-actions/phpunit@v2
-      with:
-        php_version: 7.4
+        command: composer install && php artisan test
