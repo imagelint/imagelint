@@ -6,5 +6,8 @@ jobs:
     name: PHPUnit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: nathanheffley/laravel-phpunit-action@master
+    - uses: actions/checkout@v2
+    - uses: php-actions/composer@v5
+    - uses: php-actions/phpunit@v2
+      with:
+        php_version: 7.4
