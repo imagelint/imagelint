@@ -57,10 +57,8 @@ class Compressor
 
         $filetype = $this->imageRequest->getInFileType();
         if ((bool)$this->modifiers['avif'] === true && $filetype !== 'image/svg+xml') {
-            \Log::debug('avif');
             $this->compressAvif();
         } elseif ($this->modifiers['webp'] === true && $filetype !== 'image/svg+xml') {
-            \Log::debug('webp');
             $this->compressWebp();
         } else {
             switch ($filetype) {
@@ -76,7 +74,6 @@ class Compressor
             }
         }
 
-        \Log::debug(memory_get_peak_usage() / 1024 / 1024);
         $compressedStream = $this->imageRequest->getTmpDisk()->readStream($this->imageRequest->getCompressPath());
         return $this->imageRequest->getOutputDisk()->put($this->imageRequest->getOutputPath(), $compressedStream);
     }
