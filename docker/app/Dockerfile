@@ -93,44 +93,44 @@ RUN apt-get update \
     && add-apt-repository ppa:ondrej/php \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-        php7.4-fpm \
-        php7.4-cli \
-        php7.4-gd \
-        php7.4-curl \
-        php7.4-mysql \
-        php7.4-mbstring \
-        php7.4-xml \
-        php7.4-zip \
-        php7.4-bcmath \
-        php7.4-intl \
-        php7.4-readline \
-        php7.4-msgpack \
-        php7.4-igbinary \
+        php8.0-fpm \
+        php8.0-cli \
+        php8.0-gd \
+        php8.0-curl \
+        php8.0-mysql \
+        php8.0-mbstring \
+        php8.0-xml \
+        php8.0-zip \
+        php8.0-bcmath \
+        php8.0-intl \
+        php8.0-readline \
+        php8.0-msgpack \
+        php8.0-igbinary \
         php-redis \
         libfontconfig1 \
         libxrender1 \
     && php -r "readfile('http://getcomposer.org/installer');" | php -- --install-dir=/usr/bin/ --filename=composer \
     && mkdir /run/php \
-    && sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 20M/g" /etc/php/7.4/fpm/php.ini \
-    && sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 20M/g" /etc/php/7.4/fpm/php.ini \
+    && sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 20M/g" /etc/php/8.0/fpm/php.ini \
+    && sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 20M/g" /etc/php/8.0/fpm/php.ini \
 ### Cleanup the docker image
     && apt-get clean \
     && apt-get purge -y --auto-remove wget apt-transport-https software-properties-common build-essential gcc zip debhelper dh-systemd dpkg-dev quilt lsb-release libssl-dev libpcre3-dev zlib1g-dev git \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*  /usr/share/doc/* /usr/share/man/*
 
 ### Copy the nginx/php config to their respective folders
-COPY docker/app/h5bp /opt/nginx/conf/h5bp
-COPY docker/app/gzip.conf /opt/nginx/conf/gzip.conf
-COPY docker/app/fastcgi-php.conf /opt/nginx/conf/fastcgi-php.conf
-COPY docker/app/nginx.conf /opt/nginx/conf/nginx.conf
-COPY docker/app/php-fpm.conf /etc/php/7.4/fpm/php-fpm.conf
+COPY h5bp /opt/nginx/conf/h5bp
+COPY gzip.conf /opt/nginx/conf/gzip.conf
+COPY fastcgi-php.conf /opt/nginx/conf/fastcgi-php.conf
+COPY nginx.conf /opt/nginx/conf/nginx.conf
+COPY php-fpm.conf /etc/php/8.0/fpm/php-fpm.conf
 
 ### Copy the syslog-ng config
-COPY docker/app/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+COPY syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
 
 ### Copy and setup the container entrypoint
-COPY docker/app/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/app/start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY start-container /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container
 
 EXPOSE 80
